@@ -1,0 +1,8 @@
+Tipo de error: EOleException
+La instrucción INSERT INTO contiene el siguiente nombre de campo desconocido: 'USUARIO_CREACION'. Asegúrese de que ha escrito correctamente el nombre y vuelva a intentar la operación
+Patricia
+02/10/2017
+Tipo de error: EOleException
+La instrucción INSERT INTO contiene el siguiente nombre de campo desconocido: 'USUARIO_CREACION'. Asegúrese de que ha escrito correctamente el nombre y vuelva a intentar la operación
+Patricia
+02/10/2017

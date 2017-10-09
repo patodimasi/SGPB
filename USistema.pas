@@ -1,0 +1,687 @@
+unit USistema;
+
+interface
+uses
+  UUsuario, IniFiles, UObjectDB, UUsuarioDB, UPlanoDB, UManualDB,UListaDB, USubinstructivoDB,UInstructivoDB;
+
+const
+  DB_FILENAME = 'SGPB.mdb';
+  INI_FILENAME = 'SGPB.ini';
+  INI_DIR_SECTION = 'Directorios';
+  INI_DATABASE_KEY = 'Base';
+
+  TAB_PLANO = 'PLANO';
+  TAB_MANUAL = 'MANUALESPRODUCTO';
+  TAB_SUBINSTRUCTIVO = 'SUBINSTRUCTIVOSPRODUCCION';
+  TAB_INSTRUCTIVO = 'INSTRUCTIVOSPRODUCCION';
+  TAB_HISTORICO_INSTRUCTIVO = 'INSTRUCTIVOSPRODUCCIONHISTORICO';
+  TAB_HISTORICO_SUBINSTRUCTIVO = 'SUBINSTRUCTIVOSPRODUCCIONHISTORICO';
+  TAB_HISTORICO = 'HISTORICO';
+  TAB_HISTORICO_MANUAL = 'HISTORICOMANUALES';
+  TAB_BAJA = 'BAJA';
+  TAB_WORK = 'WORK';
+  TAB_USUARIO = 'USUARIO';
+
+  SCR_PLANO_ALTA = 'PLANO_ALTA';
+  SCR_PLANO_BAJA = 'PLANO_BAJA';
+  SCR_PLANO_MODIFICAR = 'PLANO_MODIFICAR';
+  SCR_PLANO_RECUPERAR = 'PLANO_RECUPERAR';
+  SCR_PLANO_PURGAR = 'PLANO_PURGAR';
+  SCR_PLANO_APROBAR = 'PLANO_APROBAR';
+  SCR_PLANO_RECIBIR = 'PLANO_RECIBIR';
+  SCR_PLANO_SUPERAR = 'PLANO_SUPERAR';
+  SCR_USUARIO_ALTA = 'USUARIO_ALTA';
+  SCR_USUARIO_BAJA = 'USUARIO_BAJA';
+  SRC_SUBINSTRUCTIVO_ALTA = 'SUBINSTRUCTVIO_ALTA';
+  SCR_USUARIO_MODIFICAR = 'USUARIO_MODIFICAR';
+  SCR_MATERIALES_ALTA= 'MATERIALES_ALTA';
+  SCR_MATERIALES_BAJA= 'MATERIALES_BAJA';
+  SCR_MATERIALES_MODIFICAR= 'MATERIALES_MODIFICAR';
+  SCR_MATERIALES_APROBAR= 'MATERIALES_APROBAR';
+  SCR_MATERIALES_RECIBIR= 'MATERIALES_RECIBIR';
+  SCR_MATERIALES_SUPERAR= 'MATERIALES_SUPERAR';
+  SCR_MANUALES_ALTA= 'MANUALES_ALTA';
+  SCR_MANUALES_BAJA= 'MANUALES_BAJA';
+  SCR_MANUALES_MODIFICAR= 'MANUALES_MODIFICAR';
+  SCR_MANUALES_APROBAR= 'MANUALES_APROBAR';
+  SCR_MANUALES_RECIBIR= 'MANUALES_RECIBIR';
+  SCR_MANUALES_SUPERAR= 'MANUALES_SUPERAR';
+  SCR_INSTRUCTIVOSPROD_ALTA= 'INSTRUCTIVOSPROD_ALTA';
+  SCR_INSTRUCTIVOSPROD_MODIF= 'INSTRUCTIVOSPROD_MODIF';
+type
+  TAccion = string[1];
+
+  TSistema = class(TObjectDB)
+  private
+    FUsuario: TUsuario;
+    FUsuarioDB: TUsuarioDB;
+    FPlanoDB: TPlanoDB;
+    FManualDB: TManualDB;
+    FListaDB: TListaDB;
+    FSubinstructivoDB: TSubinstructivoDB;
+    FInstructivoDB: TInstructivoDB;
+    FIniFile: TIniFile;
+    FIniFilename: string;
+    constructor Create;
+    function SelectPath: string;
+  public
+    property PlanoDB: TPlanoDB read FPlanoDB;
+    property ManualDB: TManualDB read FManualDB;
+    property ListaDB: TListaDB read FListaDB;
+    property SubinstructivoDB: TSubinstructivoDB read FSubinstructivoDB;
+    property InstructivoDB: TInstructivoDB read FInstructivoDB;
+    property UsuarioDB: TUsuarioDB read FUsuarioDB;
+    class function GetInstance: TSistema;
+    function GetDataBaseFilename: string;
+    procedure SetDataBaseFilename(F: string);
+    function DataBaseExists: Boolean;
+    function GetUsuario: TUsuario;
+    destructor Destroy; override;
+    procedure SetSecurity;
+    procedure DeleteIniFile;
+    function LockScreen(PLockeada: string; PLockeadora: string): Boolean;
+    function UnLockScreen(P: string): Boolean;
+    function UnLockAllScreens: Boolean;
+    function IsLocked(P: string): Boolean;
+    function LockedByUser(P: string): string;
+    function LockedByScreen(P: string): string;
+    function LockedByScreenDesc(P: string): string;
+
+  end;
+
+implementation
+uses
+  Forms, SysUtils, UPrincipalFrm, Dialogs, UMotorSQL, ADODB;
+
+var
+  // Es una clase singleton
+  Sistema: TSistema;
+
+constructor TSistema.Create;
+var
+  F: file;
+
+begin
+  FUsuario:= TUsuario.Create;
+  FUsuarioDB:= TUsuarioDB.Create;
+  FPlanoDB:= TPlanoDB.Create;
+
+  // Obtengo el path de la aplicacion y le concateno el nombre del archivo INI
+  FIniFilename:= ExtractFilePath(Application.ExeName) + INI_FILENAME;
+
+  // Verifico si el archivo INI existe
+  if not FileExists(FIniFilename) then
+  begin
+    // Si no existe, lo creo
+    AssignFile(F, FIniFilename);
+    Rewrite(F);
+    CloseFile(F);
+  end;
+
+  // Creo el objeto que se va a encargar de trabajar sobre el archivo INI
+  FIniFile:= TIniFile.Create(FIniFilename);
+
+end;
+
+
+class function TSistema.GetInstance: TSistema;
+begin
+  Result:= Sistema;
+end;
+
+destructor TSistema.Destroy;
+begin
+  FUsuario.Free;
+  FPlanoDB.Free;
+  FUsuarioDB.Free;
+  FIniFile.Free;
+end;
+
+function TSistema.GetDataBaseFilename: string;
+begin
+  Result:= FIniFile.ReadString(INI_DIR_SECTION, INI_DATABASE_KEY, '');
+end;
+
+procedure TSistema.SetDataBaseFilename(F: string);
+begin
+  FIniFile.WriteString(INI_DIR_SECTION, INI_DATABASE_KEY, F);
+end;
+
+function TSistema.GetUsuario: TUsuario;
+begin
+  Result:= FUsuario;
+end;
+
+Procedure TSistema.SetSecurity;
+begin
+  with PrincipalFrm.mmMenuPrincipal do
+  begin
+    Items[0].Enabled:= False;
+    Items[1].Enabled:= False;
+    Items[1].Items[0].Enabled:= False;
+    Items[1].Items[0].Items[0].Enabled:= False;
+    items[1].Items[0].Items[1].Enabled:= False;
+    items[1].Items[0].Items[2].Enabled:= False;
+   // items[1].Items[0].Items[3].Enabled:= False;
+    Items[1].Items[1].Enabled:= False;
+    Items[1].Items[1].Items[0].Enabled:= False;
+    Items[1].Items[1].Items[1].Enabled:= False;
+    Items[1].Items[1].Items[2].Enabled:= False;
+    //Items[1].Items[1].Items[3].Enabled:= False;
+    Items[2].Enabled:= False;
+    Items[2].Items[0].Enabled:= False;
+    Items[2].Items[1].Enabled:= False;
+    Items[2].Items[1].Items[0].Enabled:= False;
+    Items[2].items[1].Items[1].Enabled:= False;
+    Items[2].Items[1].Items[2].Enabled:= False;
+    Items[2].Items[2].Enabled:= False;
+    Items[2].Items[2].Items[0].Enabled:= False;
+    Items[2].Items[2].Items[1].Enabled:= False;
+    Items[3].Enabled:= False;
+
+  end;
+  with FUsuario.Permisos do
+  begin
+    if Consultar = 'S' then
+      PrincipalFrm.mmMenuPrincipal.Items[0].Enabled:= True;
+      PrincipalFrm.mmMenuPrincipal.Items[3].Enabled:= True;
+      PrincipalFrm.mmMenuPrincipal.Items[3].Items[0].Enabled:= False;
+      PrincipalFrm.mmMenuPrincipal.Items[3].Items[1].Enabled:= False;
+      PrincipalFrm.mmMenuPrincipal.Items[3].Items[2].Items[0].Enabled:= False;
+      PrincipalFrm.mmMenuPrincipal.Items[3].Items[2].Items[1].Enabled:= False;
+      PrincipalFrm.mmMenuPrincipal.Items[3].Items[2].Items[2].Enabled:= false;
+      PrincipalFrm.mmMenuPrincipal.Items[3].Items[2].Enabled:= True;
+      PrincipalFrm.mmMenuPrincipal.Items[3].Items[2].Items[3].Enabled:= true;
+      PrincipalFrm.ToolButton16.Enabled:= False;
+      PrincipalFrm.ToolButton15.Enabled:= False;
+      PrincipalFrm.ToolButton5.Enabled:= False;
+      PrincipalFrm.ToolButton9.Enabled:= False;
+
+    if Alta = 'S' then
+    begin
+      PrincipalFrm.mmMenuPrincipal.Items[1].Enabled:= True;
+      PrincipalFrm.mmMenuPrincipal.Items[1].Items[0].Enabled:= True;
+      PrincipalFrm.mmMenuPrincipal.Items[1].Items[0].Items[0].Enabled:= True;
+      PrincipalFrm.mmMenuPrincipal.Items[1].Items[1].Enabled := true;
+      PrincipalFrm.mmMenuPrincipal.Items[1].Items[1].Items[0].Enabled:= True;
+      PrincipalFrm.mmMenuPrincipal.Items[1].Items[2].Enabled:= True;
+      PrincipalFrm.mmMenuPrincipal.Items[1].Items[2].Items[0].Enabled:= True;
+      PrincipalFrm.mmMenuPrincipal.Items[1].Items[2].Items[1].Enabled:= False;
+      PrincipalFrm.mmMenuPrincipal.Items[1].Items[2].Items[2].Enabled:= False;
+      //PrincipalFrm.ToolButton16.Enabled:= False;
+      PrincipalFrm.ToolButton16.Enabled:= True;
+      PrincipalFrm.Alta1.Enabled:= True;
+      PrincipalFrm.Baja1.Enabled:= False;
+      PrincipalFrm.Modificacion1.Enabled:= False;
+      PrincipalFrm.ToolButton15.Enabled:= True;
+      PrincipalFrm.Alta2.Enabled:= True;
+      PrincipalFrm.Baja2.Enabled:= False;
+      PrincipalFrm.Modificacion2.Enabled:= False;
+      PrincipalFrm.ToolButton5.Enabled:= True;
+      PrincipalFrm.Alta3.Enabled:= True;
+      PrincipalFrm.Baja3.Enabled:= False;
+      PrincipalFrm.Modificacion3.Enabled:= False;
+      PrincipalFrm.ToolButton9.Enabled:= False;
+    end;
+
+    if Baja = 'S' then
+    begin
+     PrincipalFrm.mmMenuPrincipal.Items[1].Enabled:= True;
+     PrincipalFrm.mmMenuPrincipal.Items[1].Items[0].Enabled:= true;
+     PrincipalFrm.mmMenuPrincipal.Items[1].Items[0].Items[1].Enabled:= true;
+     PrincipalFrm.mmMenuPrincipal.Items[1].Items[1].Enabled:=true;
+     PrincipalFrm.mmMenuPrincipal.Items[1].Items[1].Items[1].Enabled:= True;
+     PrincipalFrm.mmMenuPrincipal.Items[1].Items[2].Enabled:= True;
+     PrincipalFrm.mmMenuPrincipal.Items[1].Items[2].Items[1].Enabled:= True;
+     PrincipalFrm.mmMenuPrincipal.Items[1].Items[2].Items[2].Enabled:= True;
+     PrincipalFrm.ToolButton16.Enabled:= true;
+     PrincipalFrm.Baja1.Enabled:= True;
+     PrincipalFrm.ToolButton15.Enabled:= True;
+     PrincipalFrm.Baja2.Enabled:= True;
+     PrincipalFrm.ToolButton5.Enabled:= True;
+     PrincipalFrm.Baja3.Enabled:= True;
+    end;
+
+    if Modificar = 'S' then
+    begin
+      PrincipalFrm.mmMenuPrincipal.Items[1].Enabled:= True;
+      PrincipalFrm.mmMenuPrincipal.Items[1].Items[0].Enabled:= true;
+      PrincipalFrm.mmMenuPrincipal.Items[1].Items [0].Items[2].Enabled:= True;
+      PrincipalFrm.mmMenuPrincipal.Items[1].Items[1].Enabled:= true;
+      PrincipalFrm.mmMenuPrincipal.Items[1].Items[1].Items[2].Enabled:= True;
+      PrincipalFrm.mmMenuPrincipal.Items[1].Items[2].Enabled:= True;
+      PrincipalFrm.mmMenuPrincipal.Items[1].Items[2].Items[2].Enabled:= True;
+      PrincipalFrm.ToolButton16.Enabled:= True;
+      PrincipalFrm.Modificacion1.Enabled:= True;
+      PrincipalFrm.ToolButton15.Enabled:= True;
+      PrincipalFrm.Modificacion2.Enabled:= True;
+      PrincipalFrm.ToolButton5.Enabled:= True;
+      PrincipalFrm.Modificacion3.Enabled:= True;
+    end;
+
+    if Superar = 'S' then
+    begin
+      PrincipalFrm.mmMenuPrincipal.Items[2].Enabled:= True;
+      PrincipalFrm.mmMenuPrincipal.Items[2].Items[1].Enabled:= true;
+      //PrincipalFrm.mmMenuPrincipal.Items[2].Items[1].Items[1].Enabled:= true;
+      PrincipalFrm.mmMenuPrincipal.Items[2].Items[1].Items[2].Enabled:= True;
+      PrincipalFrm.mmMenuPrincipal.Items[2].Items[2].Enabled:= True;
+      PrincipalFrm.mmMenuPrincipal.Items[2].Items[2].Items[2].Enabled:= True;
+      PrincipalFrm.mmMenuPrincipal.Items[2].Items[3].Enabled:= True;
+      PrincipalFrm.mmMenuPrincipal.Items[2].Items[3].Items[2].Enabled:= True;
+      
+    end;
+
+    if Aprobar = 'S' then
+    begin
+      PrincipalFrm.mmMenuPrincipal.Items[2].Enabled:= True;
+      PrincipalFrm.mmMenuPrincipal.Items[2].Items[1].Enabled:= true;
+      PrincipalFrm.mmMenuPrincipal.Items[2].Items[1].Items[0].Enabled:= true;
+      PrincipalFrm.mmMenuPrincipal.Items[2].Items[2].Enabled:= true;
+      PrincipalFrm.mmMenuPrincipal.Items[2].Items[2].Items[0].Enabled:= True;
+      PrincipalFrm.mmMenuPrincipal.Items[2].Items[3].Enabled:= True;
+      PrincipalFrm.mmMenuPrincipal.Items[2].Items[3].Items[0].Enabled:= True;
+    
+
+    end;
+
+    if Recibir = 'S' then
+    begin
+      PrincipalFrm.mmMenuPrincipal.Items[2].Enabled:= True;
+     PrincipalFrm.mmMenuPrincipal.Items[2].Items[1].Enabled:= True;
+     PrincipalFrm.mmMenuPrincipal.Items[2].Items[1].Items[1].Enabled:= True;
+     PrincipalFrm.mmMenuPrincipal.Items[2].Items[1].Items[2].Enabled:= True;
+     PrincipalFrm.mmMenuPrincipal.Items[2].Items[2].Enabled:= true;
+     PrincipalFrm.mmMenuPrincipal.Items[2].Items[2].Items[1].Enabled:= True;
+     PrincipalFrm.mmMenuPrincipal.Items[2].Items[3].Enabled:= True;
+     PrincipalFrm.mmMenuPrincipal.Items[2].Items[3].Items[1].Enabled:= True;
+    end;
+
+    if Administrar = 'S' then
+    begin
+      PrincipalFrm.mmMenuPrincipal.Items[0].Enabled:= True;
+      PrincipalFrm.mmMenuPrincipal.Items[1].Enabled:= True;
+      PrincipalFrm.mmMenuPrincipal.Items[1].Items[0].Enabled:= true;
+      PrincipalFrm.mmMenuPrincipal.Items[1].Items[0].Items[0].Enabled:= True;
+      PrincipalFrm.mmMenuPrincipal.Items[1].Items[0].Items[1].Enabled:= true;
+      PrincipalFrm.mmMenuPrincipal.Items[1].Items[0].Items[2].Enabled:= True;
+     // PrincipalFrm.mmMenuPrincipal.Items[1].Items[0].Items[3].Enabled:= True;
+      PrincipalFrm.mmMenuPrincipal.Items[1].Items[1].Enabled:= true;
+      PrincipalFrm.mmMenuPrincipal.Items[1].Items[1].Items[0].Enabled:= True;
+      PrincipalFrm.mmMenuPrincipal.Items[1].Items[1].Items[1].Enabled:= true;
+      PrincipalFrm.mmMenuPrincipal.Items[1].Items[1].Items[2].Enabled:= True;
+      PrincipalFrm.mmMenuPrincipal.Items[1].Items[2].Enabled:= True;
+      PrincipalFrm.mmMenuPrincipal.Items[1].Items[2].Items[0].Enabled:= True;
+      PrincipalFrm.mmMenuPrincipal.Items[1].Items[2].Items[1].Enabled:= True;
+      PrincipalFrm.mmMenuPrincipal.Items[1].Items[2].Items[2].Enabled:= True;
+      //PrincipalFrm.mmMenuPrincipal.Items[1].Items[1].Items[3].Enabled:= true;
+      PrincipalFrm.mmMenuPrincipal.Items[2].Enabled:= True;
+      PrincipalFrm.mmMenuPrincipal.Items[2].Items[0].Enabled:= true;
+      PrincipalFrm.mmMenuPrincipal.Items[2].Items[1].Enabled:= true;
+      PrincipalFrm.mmMenuPrincipal.Items[2].Items[1].Items[0].Enabled:= true;
+      PrincipalFrm.mmMenuPrincipal.Items[2].Items[1].items[1].Enabled:= true;
+      PrincipalFrm.mmMenuPrincipal.Items[2].Items[1].Items[2].Enabled:= true;
+      PrincipalFrm.mmMenuPrincipal.Items[2].Items[2].Enabled:= true;
+      PrincipalFrm.mmMenuPrincipal.Items[2].Items[2].Items[0].Enabled:=true;
+      PrincipalFrm.mmMenuPrincipal.Items[2].Items[2].Items[1].Enabled:= true;
+      PrincipalFrm.mmMenuPrincipal.Items[2].Items[2].Items[2].Enabled:= True;
+      PrincipalFrm.mmMenuPrincipal.Items[2].Items[3].Enabled:= True;
+      PrincipalFrm.mmMenuPrincipal.Items[2].Items[3].Items[0].Enabled:= True;
+      PrincipalFrm.mmMenuPrincipal.Items[2].Items[3].Items[1].Enabled:= True;
+      PrincipalFrm.mmMenuPrincipal.Items[2].Items[3].Items[2].Enabled:= True;
+      PrincipalFrm.mmMenuPrincipal.Items[3].Enabled:= True;
+      PrincipalFrm.mmMenuPrincipal.Items[3].Items[0].Enabled:= True;
+      PrincipalFrm.mmMenuPrincipal.Items[3].Items[0].Items[0].Enabled:= True;
+      PrincipalFrm.mmMenuPrincipal.Items[3].Items[0].Items[1].Enabled:= True;
+      PrincipalFrm.mmMenuPrincipal.Items[3].Items[1].Enabled:= True;
+      PrincipalFrm.mmMenuPrincipal.Items[3].Items[1].Items[0].Enabled:= True;
+      PrincipalFrm.mmMenuPrincipal.Items[3].Items[1].Items[1].Enabled:= True;
+      PrincipalFrm.mmMenuPrincipal.Items[3].Items[2].Enabled:= True;
+      PrincipalFrm.mmMenuPrincipal.Items[3].Items[2].Items[0].Enabled:= True;
+      PrincipalFrm.mmMenuPrincipal.Items[3].Items[2].Items[1].Enabled:= True;
+      PrincipalFrm.mmMenuPrincipal.Items[3].Items[2].Items[2].Enabled:= True;
+      PrincipalFrm.mmMenuPrincipal.Items[3].Items[2].Items[3].Enabled:= True;
+      PrincipalFrm.ToolButton16.Enabled:= True;
+      PrincipalFrm.Alta1.Enabled:= True;
+      PrincipalFrm.Alta2.Enabled:= True;
+      PrincipalFrm.Alta3.Enabled:= True;
+      PrincipalFrm.Baja1.Enabled:= True;
+      PrincipalFrm.Baja2.Enabled:= True;
+      PrincipalFrm.Baja3.Enabled:= True;
+      PrincipalFrm.Modificacion1.Enabled:= True;
+      PrincipalFrm.Modificacion2.Enabled:= True;
+      PrincipalFrm.Modificacion3.Enabled:= True; 
+      PrincipalFrm.ToolButton15.Enabled:= True;
+      PrincipalFrm.ToolButton5.Enabled:= True;
+      PrincipalFrm.ToolButton9.Enabled:= True;
+
+
+     { PrincipalFrm.stbEstado.Panels[1].Text:= 'Administrador: Recuerde compactar la base de datos ' ;
+                                            + 'con el Access y realizar backup de la misma una vez a la semana';}
+    end;
+
+  end;
+
+end;
+function TSistema.SelectPath: string;
+var
+  OpenDialog: TOpenDialog;
+
+begin
+  Result:= '';
+  OpenDialog:= TOpenDialog.Create(nil);
+  try
+    OpenDialog.Title:= 'Seleccione la base de datos de SGPB';
+    OpenDialog.Filter := 'Base de Datos Access (*.mdb)|*.mdb';
+    OpenDialog.DefaultExt:= 'mdb';
+    if OpenDialog.Execute then
+    begin
+      if FileExists(OpenDialog.FileName) then
+      begin
+        SetDataBaseFilename(OpenDialog.FileName);
+        Result:= OpenDialog.FileName;
+      end
+      else
+        ShowMessage('El archivo ' + OpenDialog.FileName + ' no existe');
+    end;
+  except
+    ShowMessage('No se pudo seleccionar la ubicación de la base de datos');
+  end;
+end;
+
+function TSistema.DataBaseExists: Boolean;
+var
+  Filename: string;
+begin
+  Result:= False;
+  Filename:= GetDataBaseFilename;
+  if (Filename <> '') and FileExists(Filename) then
+  begin
+    Result:= True;
+  end
+  else
+  begin
+    Filename:= SelectPath;
+    if Filename <> '' then
+    begin
+      SetDataBaseFilename(Filename);
+      Result:= True;
+    end;
+  end;
+end;
+
+function TSistema.LockScreen(PLockeada: string; PLockeadora: string): Boolean;
+var
+  sSQL: string;
+  MSQL: TMotorSQL;
+
+begin
+  Result:= False;
+
+  // Establezco una conexion con la BD
+  MSQL:= TMotorSQL.GetInstance();
+  MSQL.OpenConn;
+
+  // Si se pudo realizar...
+  if MSQL.GetStatus = 0 then
+  begin
+    sSQL:= 'update LOCK ' +
+           'set USUARIO = ' + Formatear(TSistema.GetInstance.GetUsuario.Logon) +
+           ' , FECHA = ' + Formatear(DateToStr(Date)) +
+           ' , PANT_LOCKEADORA = ' + Formatear(PLockeadora) +
+           ' where PANT_LOCKEADA = ' + Formatear(PLockeada);
+    try
+      MSQL.ExecuteSQL(sSQL);
+      if MSQL.GetStatus = 0 then
+      begin
+        MSQL.Commit;
+        if MSQL.GetStatus = 0 then
+          Result:= True;
+
+        MSQL.CloseConn;
+      end;
+    except
+      Result:= False;
+    end;
+  end;
+end;
+
+function TSistema.UnLockScreen(P: string): Boolean;
+var
+  sSQL: string;
+  MSQL: TMotorSQL;
+
+begin
+  Result:= False;
+
+  // Establezco una conexion con la BD
+  MSQL:= TMotorSQL.GetInstance();
+  MSQL.OpenConn;
+
+  // Si se pudo realizar...
+  if MSQL.GetStatus = 0 then
+  begin
+    sSQL:= 'update LOCK ' +
+           'set PANT_LOCKEADORA = null ' +
+           ', USUARIO = null ' +
+           ', FECHA = null ' +
+           'where PANT_LOCKEADA = ' + Formatear(P);
+
+    try
+      MSQL.ExecuteSQL(sSQL);
+      if MSQL.GetStatus = 0 then
+      begin
+        MSQL.Commit;
+        if MSQL.GetStatus = 0 then
+          Result:= True;
+
+        MSQL.CloseConn;
+      end;
+    except
+      Result:= False;
+    end;
+  end;
+end;
+
+function TSistema.UnLockAllScreens: Boolean;
+var
+  sSQL: string;
+  MSQL: TMotorSQL;
+
+begin
+  Result:= False;
+
+  // Establezco una conexion con la BD
+  MSQL:= TMotorSQL.GetInstance();
+  MSQL.OpenConn;
+
+  // Si se pudo realizar...
+  if MSQL.GetStatus = 0 then
+  begin
+    sSQL:= 'update LOCK ' +
+           'set PANT_LOCKEADORA = null ' +
+           ', USUARIO = null ' +
+           ', FECHA = null';
+    try
+      MSQL.ExecuteSQL(sSQL);
+      if MSQL.GetStatus = 0 then
+      begin
+        MSQL.Commit;
+        if MSQL.GetStatus = 0 then
+          Result:= True;
+
+        MSQL.CloseConn;
+      end;
+    except
+      Result:= False;
+    end;
+  end;
+end;
+
+
+function TSistema.IsLocked(P: string): Boolean;
+var
+  sSQL: string;
+  MSQL: TMotorSQL;
+  Dst: TADODataset;
+
+begin
+  Result:= True;
+
+  // Establezco una conexion con la BD
+  MSQL:= TMotorSQL.GetInstance();
+  MSQL.OpenConn;
+
+  // Si se pudo realizar...
+  if MSQL.GetStatus = 0 then
+  begin
+
+    sSQL:= 'select 1 as Lockeada ' +
+            ' from LOCK ' +
+            ' where PANT_LOCKEADA = ' + Formatear(P) +
+            ' and PANT_LOCKEADORA is not null';
+
+    Dst:= TADODataset.Create(nil);
+    try
+      // Obtengo la conexion a la BD
+      Dst.Connection:= MSQL.GetConn;
+      Dst.CommandText:= sSQL;
+      Dst.Open;
+      if Dst.Eof then
+        Result:= False;
+
+      Dst.Close;
+      MSQL.CloseConn;
+    finally
+      Dst.Free;
+    end;
+  end;
+end;
+
+function TSistema.LockedByUser(P: string): string;
+var
+  sSQL: string;
+  MSQL: TMotorSQL;
+  Dst: TADODataset;
+
+begin
+  Result:= '';
+
+  // Establezco una conexion con la BD
+  MSQL:= TMotorSQL.GetInstance();
+  MSQL.OpenConn;
+
+  // Si se pudo realizar...
+  if MSQL.GetStatus = 0 then
+  begin
+
+    sSQL:= 'select USUARIO ' +
+            ' from LOCK ' +
+            ' where PANT_LOCKEADA = ' + Formatear(P) +
+            ' and PANT_LOCKEADORA is not null';
+
+    Dst:= TADODataset.Create(nil);
+    try
+      // Obtengo la conexion a la BD
+      Dst.Connection:= MSQL.GetConn;
+      Dst.CommandText:= sSQL;
+      Dst.Open;
+      if not Dst.Eof then
+        Result:= Dst.FieldByName('USUARIO').AsString;;
+
+      Dst.Close;
+      MSQL.CloseConn;
+    finally
+      Dst.Free;
+    end;
+  end;
+end;
+
+function TSistema.LockedByScreen(P: string): string;
+var
+  sSQL: string;
+  MSQL: TMotorSQL;
+  Dst: TADODataset;
+
+begin
+  Result:= '';
+
+  // Establezco una conexion con la BD
+  MSQL:= TMotorSQL.GetInstance();
+  MSQL.OpenConn;
+
+  // Si se pudo realizar...
+  if MSQL.GetStatus = 0 then
+  begin
+
+    sSQL:= 'select PANT_LOCKEADORA ' +
+            ' from LOCK ' +
+            ' where PANT_LOCKEADA = ' + Formatear(P) +
+            ' and PANT_LOCKEADORA is not null';
+
+    Dst:= TADODataset.Create(nil);
+    try
+      // Obtengo la conexion a la BD
+      Dst.Connection:= MSQL.GetConn;
+      Dst.CommandText:= sSQL;
+      Dst.Open;
+      if not Dst.Eof then
+        Result:= Dst.FieldByName('PANT_LOCKEADORA').AsString;;
+
+      Dst.Close;
+      MSQL.CloseConn;
+    finally
+      Dst.Free;
+    end;
+  end;
+end;
+
+
+function TSistema.LockedByScreenDesc(P: string): string;
+var
+  Pantalla: string;
+begin
+  Pantalla:= LockedByScreen(P);
+  if Pantalla = SCR_PLANO_ALTA then
+    Result:= 'Alta de Plano'
+  else if Pantalla = SCR_PLANO_BAJA then
+    Result:= 'Baja de Plano'
+  else if Pantalla = SCR_PLANO_MODIFICAR then
+    Result:= 'Modificar Plano'
+  else if Pantalla = SCR_PLANO_RECUPERAR then
+    Result:= 'Recuperar Plano'
+  else if Pantalla = SCR_PLANO_PURGAR then
+    Result:= 'Purgar Planos'
+  else if Pantalla = SCR_PLANO_APROBAR then
+    Result:= 'Aprobar Plano'
+  else if Pantalla = SCR_PLANO_RECIBIR then
+    Result:= 'Recibir Plano'
+  else if Pantalla = SCR_PLANO_SUPERAR then
+    Result:= 'Superar Plano'
+  else if Pantalla = SCR_USUARIO_ALTA then
+    Result:= 'Alta de Usuario'
+  else if Pantalla = SCR_USUARIO_BAJA then
+    Result:= 'Baja de Usuario'
+  else if Pantalla = SCR_USUARIO_MODIFICAR then
+    Result:= 'Modificar Usuario'
+
+end;
+
+procedure TSistema.DeleteIniFile;
+begin
+  DeleteFile(FIniFilename);
+end;
+
+initialization
+
+if not Assigned(Sistema) then
+  Sistema:= TSistema.Create;
+
+finalization
+
+if Assigned(Sistema) then
+begin
+  Sistema.Free;
+end;
+
+end.

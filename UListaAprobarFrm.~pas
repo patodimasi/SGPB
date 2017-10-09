@@ -1,0 +1,36 @@
+unit UListaAprobarFrm;
+
+interface
+
+uses
+  Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
+  Dialogs, StdCtrls, ComCtrls, DB, ADODB,UOperacion, UMotorSql, UPantallaFrm;
+
+type
+  TListaAprobarFrm = class(TForm)
+    btnVolverl: TButton;
+    procedure btnVolverlClick(Sender: TObject);
+  private
+    { Private declarations }
+  public
+    { Public declarations }
+  end;
+
+var
+  ListaAprobarFrm: TListaAprobarFrm;
+
+implementation
+uses
+  ULista, USistema, UAprobar, URecibir, UModificacion, UListaDB, UUtiles, shlobj;
+
+{$R *.dfm}
+
+procedure TListaAprobarFrm.btnVolverlClick(Sender: TObject);
+begin
+  MainForm.Enabled:= True;
+  MainForm.Show;
+  Hide;
+  MainForm:= nil;
+end;
+
+end.

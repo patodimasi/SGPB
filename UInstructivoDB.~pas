@@ -1,0 +1,45 @@
+unit UInstructivoDB;
+
+interface
+uses
+  UObjectDB, UMotorSQL, UInstructivo, ComCtrls;
+const
+  PLN_ALTA_OK = 1;
+  PLN_ALTA_FAILED = 2;
+  PLN_APR_OK = 1;
+  PLN_APR_FAILED = 2;
+  PLN_REC_OK = 1;
+  PLN_REC_FAILED = 2;
+  PLN_MODIF_OK = 1;
+  PLN_MODIF_FAILED = 2;
+  PLN_SUPERAR_OK = 1;
+  PLN_SUPERAR_FAILED = 2;
+  PLN_BAJA_OK = 1;
+  PLN_BAJA_FAILED = 2;
+  PLN_MIG_OK = 1;
+  PLN_MIG_FAILED = 2;
+
+  PLN_SEL_ERRONEA = 3;
+
+  PLN_PEND_TODOS = 1;
+  PLN_PEND_APR = 2;
+  PLN_PEND_REC = 3;
+
+  PLN_BAJA = 1;
+  PLN_RECUPERAR = 2;
+
+type
+  TInstructivoDB = class(TObjectDB)
+  public
+   function Consulta(ListView: TListView; SQL: string): Boolean;
+  end;
+
+implementation
+uses
+  SysUtils, ADODB, USistema, Classes, StrUtils;
+
+function TInstructivoDB.Consulta(ListView: TListView; SQL: string): Boolean;
+begin
+
+end;
+end.

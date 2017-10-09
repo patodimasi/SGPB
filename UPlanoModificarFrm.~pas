@@ -1,0 +1,259 @@
+unit UPlanoModificarFrm;
+
+interface
+
+uses
+  Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
+  Dialogs, StdCtrls, ComCtrls, DB, ADODB, UPantallaFrm, UOperacion;
+
+type
+  TPlanoModificarFrm = class(TPantallaFrm)
+    lblCodigoP: TLabel;
+    edtCodigoP: TEdit;
+    btnBuscarP: TButton;
+    lblDescripcionP: TLabel;
+    edtDescripcionP: TEdit;
+    lblUbicacionP: TLabel;
+    edtUbicacionP: TEdit;
+    btnDirP: TButton;
+    btnConfirmarP: TButton;
+    btnLimpiarP: TButton;
+    btnVolverP: TButton;
+    stbPlano: TStatusBar;
+    procedure btnBuscarPClick(Sender: TObject);
+    procedure edtCodigoPEnter(Sender: TObject);
+    procedure btnLimpiarPEnter(Sender: TObject);
+    procedure btnVolverPEnter(Sender: TObject);
+    procedure btnBuscarPEnter(Sender: TObject);
+    procedure btnDirPEnter(Sender: TObject);
+    procedure btnConfirmarPEnter(Sender: TObject);
+    procedure edtCodigoPKeyPress(Sender: TObject; var Key: Char);
+    procedure edtUbicacionPEnter(Sender: TObject);
+    procedure btnLimpiarPClick(Sender: TObject);
+    procedure btnVolverPClick(Sender: TObject);
+    procedure btnDirPClick(Sender: TObject);
+    procedure btnConfirmarPClick(Sender: TObject);
+    procedure FormShow(Sender: TObject);
+
+ protected
+    FOperacion: TOperacion;
+    procedure LockScreen;
+    procedure UnLockScreen;
+
+  published
+    property Operacion: TOperacion read FOperacion write FOperacion;
+  end;
+
+var
+  PlanoModificarFrm: TPlanoModificarFrm;
+
+implementation
+uses
+  UPlano, USistema, UAprobar, URecibir, UModificacion, UPlanoDB, UUtiles, shlobj;
+
+{$R *.dfm}
+
+procedure TPlanoModificarFrm.LockScreen;
+begin
+  self.lblCodigoP.Enabled:= False;
+  self.edtCodigoP.Enabled:= False;
+  self.edtCodigoP.Text:= '';
+  self.lblDescripcionP.Enabled:= False;
+  self.edtDescripcionP.Enabled:= False;
+  self.edtDescripcionP.Text:= '';
+  self.lblUbicacionP.Enabled:= False;
+  self.edtUbicacionP.Enabled:= False;
+  self.edtUbicacionP.Text:= '';
+  self.btnDirP.Enabled:= False;
+  self.btnBuscarP.Visible:= False;
+  self.btnLimpiarP.Visible:= False;
+  self.btnVolverP.SetFocus;
+end;
+procedure TPlanoModificarFrm.UnLockScreen;
+begin
+  self.lblCodigoP.Enabled:= True;
+  self.edtCodigoP.Enabled:= True;
+  self.lblDescripcionP.Enabled:= True;
+  self.edtDescripcionP.Enabled:= True;
+  self.lblUbicacionP.Enabled:= True;
+  self.edtUbicacionP.Enabled:= true;
+  self.btnDirP.Enabled:= True;
+  self.btnBuscarP.Visible:= True;
+  self.btnConfirmarP.Visible:= True;
+  self.btnLimpiarP.Visible:= True;
+end;
+procedure TPlanoModificarFrm.btnBuscarPClick(Sender: TObject);
+var
+  Plano: TPlano;
+  Ret: Boolean;
+
+begin
+  Ret:= True;
+  if self.edtCodigoP.Text = '' then
+
+    begin
+      self.edtCodigoP.Color:= clYellow;
+      ShowMessage ('Debe ingresar el código correspondiente al plano que desea Modificar');
+      self.edtCodigoP.Color:= clwindow;
+      self.edtCodigoP.SetFocus;
+    end
+    else
+    begin
+      self.edtCodigoP.Text:= UpperCase(self.edtCodigoP.Text);
+      Plano:= TPlano.Create;
+      Plano.Codigo:= self.edtCodigoP.Text;
+      Ret:= TSistema.GetInstance.PlanoDB.GetPlano(Plano,PLN_EST_TODOS);
+
+      if Ret then
+      begin
+        self.edtDescripcionP.Text:= Plano.Descripcion;
+        self.edtUbicacionP.Text:= Plano.Ubicacion;
+        self.btnConfirmarP.Enabled:= True;
+        self.edtCodigoP.Enabled:= False;
+        self.btnBuscarP.Enabled:= False;
+        self.edtDescripcionP.Enabled:= True;
+        self.edtDescripcionP.TabStop:= True;
+        self.edtUbicacionP.TabStop:= True;
+        self.btnDirP.Enabled:= True;
+        self.edtDescripcionP.SetFocus;
+      end
+      else
+      begin
+         self.edtCodigoP.color:= clred;
+         ShowMessage('El código del Plano es incorrecto');
+         self.edtCodigoP.Color:= clWindow;
+         self.edtCodigoP.SetFocus;
+   end;
+ end;
+ end;
+procedure TPlanoModificarFrm.edtCodigoPEnter(Sender: TObject);
+begin
+  self.stbPlano.SimpleText:= 'Ingrese el código del Plano a Modificar';
+end;
+
+procedure TPlanoModificarFrm.btnLimpiarPEnter(Sender: TObject);
+begin
+  self.stbPlano.SimpleText:= 'Vacia todos los casilleros de la pantalla';
+end;
+
+procedure TPlanoModificarFrm.btnVolverPEnter(Sender: TObject);
+begin
+  self.stbPlano.SimpleText:= 'Regresa a la pantalla anterior';
+end;
+
+procedure TPlanoModificarFrm.btnBuscarPEnter(Sender: TObject);
+begin
+  self.stbPlano.SimpleText:= 'Busca el código del plano ingresado en la base de datos';
+end;
+
+procedure TPlanoModificarFrm.btnDirPEnter(Sender: TObject);
+begin
+  self.stbPlano.SimpleText:= 'Seleccione la carpeta donde se encuentra el Plano';
+end;
+
+procedure TPlanoModificarFrm.btnConfirmarPEnter(Sender: TObject);
+begin
+  self.stbPlano.SimpleText:= 'Modifica el Plano especificado';
+end;
+
+procedure TPlanoModificarFrm.edtCodigoPKeyPress(Sender: TObject;
+  var Key: Char);
+begin
+  if Ord(Key) = 13 then
+    self.btnBuscarP.Click;
+end;
+
+procedure TPlanoModificarFrm.edtUbicacionPEnter(Sender: TObject);
+begin
+  self.stbPlano.SimpleText:= 'Ingrese la ubicación del archivo con el plano';
+
+end;
+procedure TPlanoModificarFrm.btnLimpiarPClick(Sender: TObject);
+begin
+  self.edtCodigoP.Enabled:= True;
+  self.edtCodigoP.Text:= '';
+  self.btnBuscarP.Enabled:= True;
+  self.edtDescripcionP.Enabled:= False;
+  self.edtDescripcionP.Text:= '';
+  self.edtDescripcionP.TabStop:= False;
+  self.edtUbicacionP.Text:= '';
+  self.edtUbicacionP.TabStop:= False;
+  self.edtUbicacionP.Enabled:= False;
+  self.btnDirP.Enabled:= False;
+  self.btnConfirmarP.Enabled:= False;
+  self.edtCodigoP.SetFocus;
+end;  
+procedure TPlanoModificarFrm.btnVolverPClick(Sender: TObject);
+begin
+  if not self.FLocked then
+  begin
+    TSistema.GetInstance.UnLockScreen(SCR_PLANO_MODIFICAR);
+  end
+  else
+  begin
+    self.UnLockScreen;
+    self.FLocked:= False;
+  end;
+    self.MainForm.Enabled:= True;
+    self.MainForm.Show;
+    Hide;
+    self.MainForm:= nil;
+//  self.Close;
+end;
+
+procedure TPlanoModificarFrm.btnDirPClick(Sender: TObject);
+var
+  sDir: string;
+
+begin
+  sDir:= BrowseForFolder ('Seleccione la carpeta donde se encuentra el Plano:',
+      CSIDL_NETWORK, self.edtUbicacionP.Text);
+  if sDir <> '' then
+      self.edtUbicacionP.Text:= sDir;
+
+end;
+
+procedure TPlanoModificarFrm.btnConfirmarPClick(Sender: TObject);
+var
+  Plano: TPlano;
+  CodRet: integer;
+
+begin
+  CodRet:= 0;
+  CodRet:= MessageDlg('¿Esta seguro que desea Modificar el Plano?' , mtConfirmation , mbOkCancel , 0);
+  if CodRet = mrOk then
+  begin
+      Plano:= TPlano.Create;
+      Plano.Codigo:= self.edtCodigoP.Text;
+      Plano.Descripcion:= self.edtDescripcionP.Text;
+      Plano.Ubicacion:= self.edtUbicacionP.Text;
+      CodRet:= TSistema.getInstance.PlanoDB.Modificacion(Plano);
+      if CodRet = PLN_MODIF_OK then
+      begin
+          ShowMessage ('El Plano ' +  Plano.Codigo  +  ' Se Modifico Satisfactoriamente');
+          Plano.Free;
+          if MessageDlg('¿Desea Modificar otro Plano?',mtConfirmation,mbOkCancel,0)= mrOk then
+            self.btnLimpiarP.Click
+            else
+                self.btnVolverP.Click;
+            end
+            else
+                ShowMessage('El Plano'+Plano.Codigo + 'no se pudo modificar');
+     end;
+  end;   
+
+
+procedure TPlanoModificarFrm.FormShow(Sender: TObject);
+begin
+  if self.PantallaLockeada(SCR_PLANO_MODIFICAR) then
+  begin
+    self.LockScreen;
+  end
+  else
+  begin
+    TSistema.GetInstance.LockScreen(SCR_PLANO_MODIFICAR,SCR_PLANO_MODIFICAR);
+    self.FLocked:= False;
+  end;    
+end;
+
+end.

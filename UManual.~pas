@@ -1,0 +1,71 @@
+unit UManual;
+
+interface
+const
+    MANUAL_EST_CREADO = 'CR';
+    MANUAL_EST_ACTIVO = 'AC';
+    MANUAL_EST_INACTIVO = 'IN';
+    MANUAL_EST_BAJA = 'BA';
+    MANUAL_EST_SUPERABLE = 'SU';
+    MANUAL_EST_ERROR = 'ER';
+    MANUAL_EST_PEND_APR = 'PA';
+    MANUAL_EST_PEND_REC = 'PR';
+    MANUAL_EST_TODOS = '*';
+
+type
+  TEstadoManual = string[2];
+
+ TManual = class(TObject)
+  private
+    FCodigo: string;
+    FDescripcion: string;
+    FRevision: Integer;
+    FEdicion: Integer;
+    FEstado: TEstadoManual;
+    FFecha: string;
+    FUsuarioAlta: string;
+    FUsuarioAprobacion: string;
+    FFechaAprobacion: string;
+    FUsuarioRecepcion: string;
+    FFechaRecepcion: string;
+    FUbicacion: string;
+    FUsuarioCreacion: string;
+    FFechaCreacion: string;
+    FUsuarioModif: string;
+    FFechaModif: string;
+
+    public
+    constructor Create;
+    property Codigo: string read FCodigo write FCodigo;
+    property Descripcion: string read FDescripcion write FDescripcion;
+    property Revision: Integer read FRevision write FRevision;
+    property Edicion: Integer read FEdicion write FEdicion;
+    property Estado: TEstadoManual read FEstado write FEstado;
+    property Fecha: string read FFecha write FFecha;
+    property UsuarioAlta: string read FUsuarioAlta write FUsuarioAlta;
+    property UsuarioAprobacion: string read FUsuarioAprobacion write FUsuarioAprobacion;
+    property FechaAprobacion: string read FFechaAprobacion write FFechaAprobacion;
+    property UsuarioRecepcion: string read FUsuarioRecepcion write FUsuarioRecepcion;
+    property FechaRecepcion: string read FFechaRecepcion write FFechaRecepcion;
+    property Ubicacion: string read FUbicacion write FUbicacion;
+    property UsuarioCreacion: string read FUsuarioCreacion write FUsuarioCreacion;
+    property FechaCreacion: string read FFechaCreacion write FFechaCreacion;
+    property UsuarioModif: string read FUsuarioModif write FUsuarioModif;
+    property FechaModif: string read FFechaModif write FFechaModif;
+    property CodigoL: string read FCodigo write FCodigo;
+    function Copiar(M: TManual): Boolean;
+
+
+implementation
+
+constructor TManual.Create;
+begin
+  FCodigo:= '';
+  FDescripcion:= '';
+  FEstado:= MANUAL_EST_CREADO;
+end;
+
+end;
+
+end.
+ 

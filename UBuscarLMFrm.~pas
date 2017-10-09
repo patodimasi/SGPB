@@ -1,0 +1,465 @@
+unit UBuscarLMFrm;
+
+interface
+
+uses
+  Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
+  Dialogs, ComCtrls, ImgList, Menus,UMateriales,ADODB,UMotorSql, StdCtrls,ShellAPI,TreeUtils;
+Const
+  IMG_NODE_ROOT = 2;
+  IMG_NODE_FILE_CLOSED = 0;
+  IMG_NODE_FILE_OPEN = 1;
+//  IMG_NODE_FOLDER_CLOSED = 3;
+//  IMG_NODE_FOLDER_OPEN = 4;
+type
+ eNodeType = (ntUnknown,  ntRoot,  ntFile,  ntFolder);
+  TBuscarLMFrm = class(TForm)
+    TreeView1: TTreeView;
+    ImageList1: TImageList;
+    PopupMenu1: TPopupMenu;
+    Descripcin1: TMenuItem;
+    procedure TreeView1MouseUp(Sender: TObject; Button: TMouseButton;
+      Shift: TShiftState; X, Y: Integer);
+    procedure TreeView1Click(Sender: TObject);
+    procedure Descripcin1Click(Sender: TObject);
+    procedure CadenaSimple(CadS:string);
+    procedure FormCreate(Sender: TObject);
+    procedure TreeView1Expanded(Sender: TObject; Node: TTreeNode);
+
+  private
+    CodigoNodo: string;
+    { Private declarations }
+  public
+   property Codigo: string read CodigoNodo write CodigoNodo;
+    procedure ClickEnNodo(MyNode: TTreeNode);
+    function BuscarPadreDe(MyNode: TTreeNode):TTreeNode;
+    function CountSpaces(Cadena: string): Integer;
+    function GetNodeType(  Node : TTreeNode  ) : eNodeType;
+     function IsNodeAllowed(  ParentNode : TTreeNode;
+                              NewNodesType : eNodeType
+                            ) : boolean;
+    { Public declarations }
+  end;
+var
+  BuscarLMFrm: TBuscarLMFrm;
+
+implementation
+uses
+  UMaterialesAltaFrm;
+{$R *.dfm}
+function TBuscarLMFrm.IsNodeAllowed(ParentNode : TTreeNode;
+                                NewNodesType : eNodeType
+                              ) : boolean;
+begin
+   case GetNodeType(  ParentNode  ) of
+      ntRoot :
+      begin
+            {A root may contain any type of node}
+         Result := true;
+      end;
+
+      ntFolder :
+      begin
+            {Folder may contain any type of node}
+         Result := true;
+      end;
+
+      ntFile :
+      begin;
+            {Files may have no sub-items}
+         Result := false;
+      end;
+   else
+         {Unknown node type, dont allow any operations}
+      Result := false;
+   end;
+end;
+function TBuscarLMFrm.GetNodeType( Node : TTreeNode): eNodeType;
+begin
+   if(  Node = nil  ) then
+   begin
+      Result := ntUnknown;
+      Exit;
+   end;
+
+      {Determine what type of node this is by looking at the
+        node's ImageIndex}
+   case Node.ImageIndex of
+      IMG_NODE_ROOT : Result := ntRoot;
+      IMG_NODE_FILE_CLOSED : Result := ntFile;
+    //  IMG_NODE_FOLDER_CLOSED : Result := ntFolder;
+   else
+         {Node should be one of the above...}
+      Result := ntUnknown;
+   end;
+end;
+
+
+function MyCustomSortProc(  Node1,  Node2 : TTreeNode;  Data : integer  ) : integer; stdcall;
+      {Inline function returns true if Node is a File}
+   function IsAFile(  Node : TTreeNode  ) : boolean;
+   begin
+      Result := ((Node.ImageIndex =  IMG_NODE_ROOT) or
+                 (Node.ImageIndex = IMG_NODE_FILE_OPEN));
+   end;
+
+      {Inline function returns true if Node is a Folder}
+   function IsAFolder(  Node : TTreeNode  ) : boolean;
+   begin
+      Result := ((Node.ImageIndex = IMG_NODE_ROOT) or
+                 (Node.ImageIndex = IMG_NODE_FILE_OPEN));
+   end;
+
+
+begin
+      {Files before folders}
+   if(   IsAFile(  Node1  ) and IsAFolder(  Node2  )   ) then
+   begin
+      Result := -1;
+      Exit;
+   end;
+
+      {Folder after file}
+   if(   IsAFolder(  Node1  ) and IsAFile(  Node2  )   ) then
+   begin
+      Result := 1;
+      Exit;
+   end;
+
+      {Nodes are of the same type, so do a normat alpha sort}
+   Result := AnsiStrIComp(  PChar(Node1.Text), PChar(Node2.Text)  );
+end;
+
+function TBuscarLMFrm.CountSpaces(Cadena:String):integer;
+var
+ Posfin,w: integer;
+begin
+ PosFin:= Pos('/',Cadena);
+  Result:= 0;
+ for w:= PosFin to Length(Cadena)-1 do
+ begin
+  Inc(result);
+ end;
+ end;
+procedure TBuscarLMFrm.CadenaSimple(CadS: string);
+var
+ Dst: TADODataset;
+ MSQL: TMotorSQL;
+ sSQL,codigo,codigofinal: string;
+ CodMax,CodigoNew: string;
+ i: integer;
+ maximo: integer;
+ vector: array of integer;
+ PosFin,w,contador: integer;
+begin
+
+  MSQL:= TMotorSQL.GetInstance();
+  MSQL.OpenConn;
+
+  // Si se pudo realizar...
+  if MSQL.GetStatus = 0 then
+ begin
+    sSQL:= 'select PLN_CODIGO from MATERIALES where PLN_CODIGO like' + QuotedStr(CadS+'%');
+    Dst:= TADODataset.Create(nil);
+
+      // Obtengo la conexion a la BD
+ try
+    Dst.Connection:= MSQL.GetConn;
+    Dst.CommandText:= sSQL;
+    Dst.Open;
+
+    setLength(vector,Dst.RecordCount);
+
+   while not Dst.Eof do
+    begin
+     for i:= 0 to Dst.RecordCount-1 do
+     begin
+     vector[i]:= StrToInt(Copy(Dst.fieldByName('PLN_CODIGO').AsString,9,self.CountSpaces(Dst.fieldByNAme('PLN_CODIGO').AsString)));
+      Dst.Next;
+     end;
+    end;
+  try
+    maximo:=  vector[0];
+    for i:= 0 to dst.RecordCount-1 do
+    begin
+     if vector[i] > maximo then
+     begin
+      maximo:= vector[i];
+     end
+     else
+      maximo:= maximo;
+    end;
+     codigo:= CadS +'/'+IntToStr(maximo+1);
+     PosFin:= Pos('/',codigo);
+     contador:= 0;
+     for w:= PosFin to Length(codigo)-1 do
+     begin
+      Inc(contador);
+     end;
+     if contador = 1 then
+     begin
+     codigofinal:= CadS + '/' + '00' + IntToStr(maximo+1);
+     end;
+     if contador = 2 then
+     begin
+      codigofinal:= CadS + '/' + '0' + IntToStr(maximo+1);
+     end;
+     if contador = 3 then
+     begin
+      codigofinal:= codigo;
+     end;
+     MaterialesAltaFrm.edtCodigol.Text:= codigofinal;
+
+     Dst.Close;
+     Msql.CloseConn;
+     except
+      showMessage('No existen Listas de Materiales')
+    end;  
+      finally
+  dst.Free;
+  end;
+end;
+end;
+procedure TBuscarLMFrm.TreeView1MouseUp(Sender: TObject;
+  Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+var Pt: TPoint;
+begin
+  If Button = mbRight then
+  begin
+      {Si el raton se encuentra sobre un item, lanzamos el popup}
+      if Not(htOnItem in TTreeView(Sender).GetHitTestInfoAt(X,Y)) then exit;
+
+      {Obtenemos las coordenadas relativas al escritorio de X e Y}
+      Pt:= Point((Left + TTreeView(Sender).Left + X +5),
+                 (Top + TTreeView(Sender).Top + Y +25));
+
+      {Lanzamos el popupmenu}
+      Popupmenu1.Popup(Pt.X,Pt.Y);
+  end;
+end;
+
+procedure TBuscarLMFrm.TreeView1Click(Sender: TObject);
+var
+ MyNode: TTreeNode;
+ NodoTexto:string;
+ Dst: TADODataset;
+ MSQL: TMotorSQL;
+ sSQL,codigo: string;
+ CodMax: string;
+ i,j: integer;
+ maximo: integer;
+ CodigoNew,UbicacionMateriales: string;
+ vector: array of integer;
+   Padre: TTreeNode;
+
+begin
+  MaterialesAltaFrm.edtDescripcionl.Text := '';
+  MyNode:= self.TreeView1.Selected;
+  if (MyNode.Level=1) then
+  Begin
+     Self.ClickEnNodo(MyNode);
+  end
+    else if (MyNode.Level=3) then
+  Begin
+   MSQL:= TMotorSQL.GetInstance();
+  MSQL.OpenConn;
+
+  // Si se pudo realizar...
+  if MSQL.GetStatus = 0 then
+  begin
+    Dst:= TADODataset.Create(nil);
+    try
+      // Obtengo la conexion a la BD
+    Dst.Connection:= MSQL.GetConn;
+    sSQL:= 'select PLN_UBICACION from MATERIALES where PLN_CODIGO = '+ QuotedStr(MyNode.Text) ;
+    Dst.CommandText:= sSQL;
+    Dst.Open;
+    UbicacionMateriales:= Dst.fieldByNAme('PLN_UBICACION').AsString;
+    if UbicacionMateriales<>'' then
+    begin
+          {  if ShellExecute( Self.Handle, 'explore'
+                   , PChar(UbicacionMateriales)
+                   , nil, nil, SW_SHOWMAXIMIZED) <= 32 then
+                   Application.MessageBox('La ubicación de la Lista de Material no existe', 'SGPB', MB_ICONEXCLAMATION);
+           }
+    ShellExecute(Handle,'open',PChar(UbicacionMateriales),'', '', SW_SHOW)
+    end
+    else
+    begin
+      ShowMessage('La ubicación de la Lista de Materiales no existe',);
+    end;
+    finally
+    Dst.Free;
+   Padre:= self.TreeView1.Selected.Parent;
+   padre.Collapse(true);
+    end;
+    TMotorSql.GetInstance.CloseConn;
+  //  MaterialesAltaFrm.edtDescripcionl.Text := MyNode.Text;
+    MyNode := Self.BuscarPadreDe(MyNode);
+    if MyNode<>nil then
+    Begin
+      MyNode := Self.BuscarPadreDe(MyNode);
+    end;
+    if MyNode<>nil then
+    Begin
+      Self.ClickEnNodo(MyNode);
+     // MyNode.Text:= self.CodigoNodo;
+    end;
+  end;
+end;
+end;
+procedure TBuscarLMFrm.Descripcin1Click(Sender: TObject);
+var
+ sSQl: string;
+ i: integer;
+ Materiales: TMateriales;
+ MyNode: TTreenode;
+ ADODataSet1: TADODataSet;
+begin
+  Materiales:= TMateriales.Create;
+  MyNode:= self.TreeView1.Selected;
+  ADODataset1:= TAdoDataset.Create(nil);
+//  self.ADODataSet1.Close;
+  ADODataSet1.Connection:= TMotorSql.getInstance().GetConn;
+  TMotorSql.GetInstance.OpenConn;
+  sSQL:= 'select * from MATERIALES where PLN_CODIGO='+QuotedStr(MyNode.Text);
+  ADODataSet1.CommandText:= sSQL;
+  ADODataSet1.Close;
+  ADODataSet1.Open;
+  materiales.Codigol:= ADODataSet1.fieldByName('PLN_CODIGO').AsString;
+  materiales.Revisionl:= ADODataSet1.fieldByName('PLN_NRO_REV').AsInteger;
+  materiales.Descripcionl:= ADODataSet1.FieldByName('PLN_DESCRIPCION').AsString;
+  MessageBox(GetActiveWindow, PChar('NroRev: '+ IntToStr(materiales.Revisionl)+#13#10+ 'Descripcion: '+materiales.Descripcionl) , PChar(materiales.Codigol), MB_OK);
+end;
+
+procedure TBuscarLMFrm.ClickEnNodo(MyNode: TTreeNode);
+var
+  NodoTexto : String;
+  CodigoNew : String;
+begin
+
+ NodoTexto:= MyNode.Text;
+ if NodoTexto = 'Productos' then
+ begin
+  MaterialesAltaFrm.edtCodigol.Text:= '';
+ end;
+ if NodoTexto = 'PL-1001 Señalizacion Optica' then
+ begin
+  CodigoNew:= 'LB9-001';
+  self.CadenaSimple(CodigoNew);
+ end;
+ if NodoTexto = 'MAI-2' then
+ begin
+   CodigoNew:= 'LB9-007';
+   self.CadenaSimple(CodigoNew);
+ end;
+ if NodoTexto = 'RPO/RNO/RCA' then
+  begin
+   CodigoNew:= 'LB9-003';
+   self.CadenaSimple(CodigoNew);
+  end;
+  if NodoTexto = 'DMC' then
+  begin
+   CodigoNew:= 'LB9-004';
+   self.CadenaSimple(CodigoNew);
+  end;
+  if NodoTexto = 'SA3002N' then
+   begin
+    CodigoNew:= 'LB9-005';
+    self.CadenaSimple(CodigoNew);
+   end;
+  if NodoTexto = 'Si-96' then
+  begin
+   CodigoNew:= 'LB9-006';
+   self.CadenaSimple(CodigoNew);
+  end;
+   If NodoTexto = 'MO-2' then
+   begin
+    CodigoNew:= 'LB9-008';
+    self.CadenaSimple(CodigoNew);
+   end;
+   If  NodoTexto = 'RSCBDS' then
+   begin
+    CodigoNew:= 'LB9-009';
+    self.CadenaSimple(CodigoNew);
+   end;
+   if NodoTexto = 'Rectificador' then
+   begin
+    CodigoNew:= 'LB9-011';
+    self.CadenaSimple(CodigoNew);
+   end;
+   if NodoTexto = 'DPT' then
+    begin
+     CodigoNew:= 'LB9-013';
+     self.CadenaSimple(CodigoNew);
+    end;
+   if NodoTexto = 'DCF' then
+   begin
+     CodigoNew:= 'LB9-014';
+     self.CadenaSimple(CodigoNew);
+   end;
+   if NodoTexto = 'Bocina2002' then
+   begin
+    CodigoNew:= 'LB9-002';
+    self.CadenaSimple(CodigoNew);
+   end;
+   if NodoTexto = 'CV2000' then
+   begin
+    CodigoNew:= 'LB9-012';
+    self.CadenaSimple(CodigoNew);
+   end;
+   if NodoTexto = 'PL/SC2' then
+   begin
+    CodigoNew:= 'LB9-015';
+    self.CadenaSimple(CodigoNew);
+   end;
+   if NodoTexto = 'PL-L1' then
+   begin
+    CodigoNew := 'LB9-016';
+    self.CadenaSimple(CodigoNew);
+   end;
+   if NodoTexto = 'MOD' then
+   begin
+    CodigoNew:= 'LB9-019';
+    self.CadenaSimple(CodigoNew);
+   end;
+   if NodoTexto = 'MB04' then
+   begin
+    CodigoNew:= 'LB9-018';
+    self.CadenaSimple(CodigoNew);
+   end;
+   if NodoTexto = 'Sistema de Alarma SA4003' then
+   begin
+    CodigoNew:= 'LB9-017';
+    self.CadenaSimple(CodigoNew);
+   end;
+ end;
+function TBuscarLMFrm.BuscarPadreDe(MyNode: TTreeNode): TTreeNode;
+var
+  i:integer;
+begin
+  result := nil;
+  for i:=0 to Self.TreeView1.Items.Count-1 do
+  Begin
+    if MyNode.HasAsParent(Self.TreeView1.Items[i]) then
+    Begin
+       result := Self.TreeView1.Items[i];
+    end;
+  end;
+end;
+procedure TBuscarLMFrm.FormCreate(Sender: TObject);
+begin
+  self.TreeView1.CustomSort(@MyCustomSortProc, 0);
+end;
+
+procedure TBuscarLMFrm.TreeView1Expanded(Sender: TObject; Node: TTreeNode);
+begin
+ if Node.Expanded then
+ begin
+   self.TreeView1.CustomSort(@MyCustomSortProc, 0);
+   node.Selected:=  true;
+   self.TreeView1.RowSelect:= true;
+   self.TreeView1.SetFocus;
+end;
+   end;
+end.

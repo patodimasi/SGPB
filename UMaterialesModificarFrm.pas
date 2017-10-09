@@ -1,0 +1,300 @@
+unit UMaterialesModificarFrm;
+
+interface
+
+uses
+  Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
+  Dialogs, StdCtrls, ComCtrls, DB, ADODB, UMotorSQL, UMateriales, USistema, UUtiles, ShlObj, UOperacion, UPantallaFrm;
+
+type
+  TListaMaterialesModificarFrm = class(TPantallaFrm)
+    lblCodigo: TLabel;
+    edtCodigo: TEdit;
+    btnBuscar: TButton;
+    lblDescripcion: TLabel;
+    edtDescripcion: TEdit;
+    lblUbicacion: TLabel;
+    edtUbicacion: TEdit;
+    btnDir: TButton;
+    btnConfirmar: TButton;
+    btnLimpiar: TButton;
+    btnVolver: TButton;
+    ADODataSet1: TADODataSet;
+    ADODataSet1PLN_CODIGO: TWideStringField;
+    ADODataSet1PLN_DESCRIPCION: TWideStringField;
+    ADODataSet1PLN_UBICACION: TWideStringField;
+    stbPlano: TStatusBar;
+
+    procedure btnBuscarEnter(Sender: TObject);
+    procedure btnBuscarClick(Sender: TObject);
+    procedure btnLimpiarEnter(Sender: TObject);
+    procedure btnLimpiarClick(Sender: TObject);
+    procedure btnDirEnter(Sender: TObject);
+    procedure btnDirClick(Sender: TObject);
+    procedure btnVolverEnter(Sender: TObject);
+    procedure btnConfirmarEnter(Sender: TObject);
+    procedure btnConfirmarClick(Sender: TObject);
+    procedure btnVolverClick(Sender: TObject);
+   // procedure FormShow(Sender: TObject);
+    procedure edtCodigoEnter(Sender: TObject);
+    procedure edtUbicacionEnter(Sender: TObject);
+
+
+  protected
+      FOperacion: TOperacion;
+    //  procedure LockScreen;
+   //   procedure UnLockscreen;
+  published
+      property Operaciob: TOperacion read FOperacion write FOperacion;
+  end;
+
+var
+  ListaMaterialesModificarFrm: TListaMaterialesModificarFrm;
+
+implementation
+
+{$R *.dfm}
+{procedure TListaMaterialesModificarFrm.LockScreen;
+begin
+  self.lblCodigo.Enabled:= False;
+  self.edtCodigo.Enabled:= False;
+  self.edtCodigo.Text:= '';
+  self.lblDescripcion.Enabled:= False;
+  self.edtDescripcion.Enabled:= False;
+  self.edtDescripcion.Text:= '';
+  self.lblUbicacion.Enabled:= False;
+  self.edtUbicacion.Enabled:= False;
+  self.edtUbicacion.Text:= '';
+  self.btnDir.Enabled:= False;
+  self.btnBuscar.Visible:= False;
+  self.btnConfirmar.Visible:= False;
+  self.btnLimpiar.Visible:= False;
+  self.btnVolver.SetFocus;
+end;
+procedure TListaMaterialesModificarFrm.UnLockscreen;
+begin
+  self.lblCodigo.Enabled:= True;
+  self.edtCodigo.Enabled:= True;
+  self.lblDescripcion.Enabled:= True;
+  self.edtDescripcion.Enabled:= True;
+  self.lblUbicacion.Enabled:= True;
+  self.edtUbicacion.Enabled:= True;
+  self.btnDir.Enabled:= True;
+  self.btnBuscar.Visible:= True;
+  self.btnConfirmar.Visible:= True;
+  self.btnLimpiar.Visible:= True;
+end;}
+
+procedure TListaMaterialesModificarFrm.btnBuscarEnter(Sender: TObject);
+begin
+  self.stbPlano.SimpleText:= 'Busca el código de la Lista de Material ingresado en la base de datos';
+end;
+
+procedure TListaMaterialesModificarFrm.btnBuscarClick(Sender: TObject);
+var
+ sSQL: string;
+ Materiales: TMateriales;
+ Ret: boolean;
+begin
+  if self.edtCodigo.Text = '' then
+  begin
+    self.edtCodigo.Color:= clred;
+    ShowMessage('Debe ingresar el código correspondiente a la Lista de Materiales que desea Modificar');
+    self.edtCodigo.Color:= clWindow;
+    self.edtCodigo.SetFocus;
+  end
+  else
+  begin
+    self.edtCodigo.Text:= UpperCase(self.edtCodigo.Text);
+    Materiales:= TMateriales.Create;
+    Materiales.Codigol:= self.edtCodigo.Text;
+
+    self.ADODataSet1.Close;
+    self.ADODataSet1.Connection:= TMotorSql.getInstance().GetConn;
+    TMotorSql.GetInstance.OpenConn;
+
+    sSQL:= 'select PLN_CODIGO ' +
+                  ', PLN_DESCRIPCION ' +
+                  ', PLN_NRO_REV ' +
+                  ', PLN_NRO_EDIC ' +
+                  {', PLN_FECHA ' +
+                  ', PLN_USUARIO_ALTA ' +
+                  ', PLN_USUARIO_APR ' +
+                  ', PLN_FECHA_APR ' +
+                  ', PLN_USUARIO_REC ' +}
+                  ', PLN_UBICACION ' +
+                  {', USUARIO_CREACION ' +
+                  ', FECHA_CREACION ' +
+                  ', USUARIO_MODIF ' +
+                  ', FECHA_MODIF ' +}
+            ' from MATERIALES ' +
+            ' where PLN_CODIGO = ' + QuotedStr(self.edtCodigo.Text);
+    self.ADODataSet1.CommandText:= sSQL;
+    self.ADODataSet1.Open;
+
+    if (Self.ADODataSet1.Eof) then
+    begin
+      self.edtCodigo.Color:= clRed;
+      showMessage('El Código que ingresó no corresponde a ninguna Lista de Materiales en la base de datos');
+      self.edtCodigo.Color:= clWindow;
+      self.edtCodigo.SetFocus;
+    end
+    else
+    begin
+      Self.edtDescripcion.Enabled := True;
+      Self.edtUbicacion.Enabled := True;
+      Self.btnConfirmar.Enabled := True;
+      Materiales.Codigol:= self.ADODataSet1.FieldByName('PLN_CODIGO').AsString;
+      Materiales.Descripcionl:= self.ADODataSet1.FieldByName('PLN_DESCRIPCION').AsString;
+    //Materiales.Revisionl:= self.ADODataSet1.FieldByName('PLN_NRO_REV').AsInteger;
+    //Materiales.Edicionl:= self.ADODataSet1.FieldByName('PLN_NRO_EDIC').AsInteger;
+     {Materiales.Fechal:= self.ADODataSet1.fieldByName('PLN_FECHA').AsString;
+     Materiales.UsuarioAltal:= self.ADODataSet1.fieldByName('PLN_USUARIO_ALTA').AsString;
+     Materiales.UsuarioAprobacionl:= self.ADODataSet1.fieldByName('PLN_USUARIO_APR').AsString;
+     Materiales.FechaAprobacionl:= self.ADODataSet1.fieldByName('PLN_FECHA_APR').AsString;
+     Materiales.UsuarioRecepcionl:= self.ADODataSet1.fieldByName('PLN_USUARIO_REC').AsString;}
+     Materiales.Ubicacionl:= self.ADODataSet1.FieldByName('PLN_UBICACION').AsString;
+    {Materiales.UsuarioCreacionl:= self.ADODataSet1.fieldByName('USUARIO_CREACION').AsString;
+     Materiales.FechaCreacionl:= self.ADODataSet1.fieldByName('FECHA_CREACION').AsString;
+     Materiales.UsuarioModifl:= self.ADODataSet1.fieldByName('USUARIO_MODIF').AsString;
+     Materiales.FechaModifl:= self.ADODataSet1.fieldByName('FECHA_MODIF').AsString;}
+
+
+     self.edtDescripcion.Text:= Materiales.Descripcionl;
+     self.edtUbicacion.Text:= Materiales.Ubicacionl;
+     self.ADODataSet1.Open;
+     self.ADODataSet1.Close;
+  end;
+    TMotorSql.GetInstance.CloseConn;
+end;
+ end;
+procedure TListaMaterialesModificarFrm.btnLimpiarEnter(Sender: TObject);
+begin
+  self.stbPlano.SimpleText:= 'Vacia todos los casilleros de la pantalla';
+end;
+
+procedure TListaMaterialesModificarFrm.btnLimpiarClick(Sender: TObject);
+begin
+  self.edtCodigo.Enabled:= True;
+  self.edtCodigo.Text:= '';
+  self.btnBuscar.Enabled:= True;
+  self.edtDescripcion.Enabled:= False;
+  self.edtDescripcion.Text:= '';
+  self.edtDescripcion.TabStop:= False;
+  self.edtUbicacion.Text:= '';
+  self.edtUbicacion.TabStop:= false;
+  self.edtUbicacion.Enabled:= False;
+  self.btnDir.Enabled:= False;
+  self.btnConfirmar.Enabled:= False;
+  self.edtCodigo.SetFocus;
+end;
+
+procedure TListaMaterialesModificarFrm.btnDirEnter(Sender: TObject);
+begin
+  self.stbPlano.SimpleText:= 'Seleccione la carpeta donde se encuentra la Lista de Materiales';
+end;
+
+procedure TListaMaterialesModificarFrm.btnDirClick(Sender: TObject);
+var
+  sDir: string;
+begin
+  sDir:= BrowseForFolder('Seleccione la carpeta donde se encuentra la Lista de Materiales:',
+      CSIDL_NETWORK, self.edtUbicacion.Text);
+  if sDir <> '' then
+    self.edtUbicacion.Text:= sDir;
+
+end;
+
+procedure TListaMaterialesModificarFrm.btnVolverEnter(Sender: TObject);
+begin
+  self.stbPlano.SimpleText:= 'Regresa a la pantalla anterior';
+end;
+procedure TListaMaterialesModificarFrm.btnConfirmarEnter(Sender: TObject);
+begin
+  self.stbPlano.SimpleText:= 'Modifica la Lista de Material especificada';
+end;
+
+procedure TListaMaterialesModificarFrm.btnConfirmarClick(Sender: TObject);
+var
+ sSQL: string;
+ Materiales: TMateriales;
+
+begin
+  Materiales:= TMateriales.Create;
+  Materiales.Codigol:= self.edtCodigo.Text;
+  Materiales.Descripcionl:= self.edtDescripcion.Text;
+  Materiales.Ubicacionl:= self.edtUbicacion.Text;
+
+  self.ADODataSet1.close;
+  self.ADODataSet1.Connection:= TMotorSql.GetInstance.GetConn;
+  TMotorSql.GetInstance.OpenConn;
+
+  sSQL:= 'update MATERIALES ' +
+  'set PLN_DESCRIPCION = ' + QuotedStr(self.edtDescripcion.Text) +
+  ', PLN_UBICACION =  '  +  QuotedStr(self.edtUbicacion.Text) +
+  'where PLN_CODIGO =  ' +  QuotedStr(self.edtCodigo.Text);
+
+  TMotorSql.GetInstance.ExecuteSQL(sSQL);
+  if TMotorSQL.GetInstance.GetStatus = 0 then
+  begin
+    TMotorSQL.GetInstance.Commit;
+  end
+  else
+  Begin
+    TMotorSQL.GetInstance.Rollback;
+  end;
+    ShowMessage('La Lista de Materiales ' + Materiales.Codigol + ' se modifico satisfactoriamente');
+    self.edtCodigo.Text:= '';
+    self.edtDescripcion.Text:= '';
+    self.edtUbicacion.Text:= '';
+
+  //self.ADODataSet1.CommandText:= sSQL;
+  //self.ADODataSet1.Close;
+  TMotorSql.GetInstance.OpenConn;
+
+end;
+
+procedure TListaMaterialesModificarFrm.btnVolverClick(Sender: TObject);
+begin
+ Self.Close;
+{  if not self.FLocked then
+  begin
+    TSistema.GetInstance.UnLockScreen(SCR_MATERIALES_MODIFICAR);
+  end
+  else
+  begin
+    self.UnLockscreen;
+    self.FLocked:= False;
+  end;
+    self.MainForm.Enabled:= True;
+    self.MainForm.Show;
+    Hide;
+    self.MainForm:= nil;}
+end;
+
+{procedure TListaMaterialesModificarFrm.FormShow(Sender: TObject);
+begin
+  if self.PantallaLockeada(SCR_MATERIALES_MODIFICAR) then
+  begin
+    self.LockScreen;
+  end
+  else
+  begin
+    TSistema.GetInstance.LockScreen(SCR_MATERIALES_MODIFICAR,SCR_MATERIALES_MODIFICAR);
+    self.FLocked:= False;
+   self.btnConfirmar.Enabled:= False;
+end;
+end;}
+procedure TListaMaterialesModificarFrm.edtCodigoEnter(Sender: TObject);
+begin
+  self.stbPlano.SimpleText:= 'Ingrese el código de la Lista de Materiales a Modificar'
+end;
+
+procedure TListaMaterialesModificarFrm.edtUbicacionEnter(Sender: TObject);
+begin
+  self.stbPlano.SimpleText:= 'Ingrese la ubicación del archivo con la Lista de Materiales';
+end;
+
+end.
+
+

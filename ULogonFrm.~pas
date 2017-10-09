@@ -1,0 +1,151 @@
+unit ULogonFrm;
+
+interface
+
+uses
+  Windows, Messages, SysUtils, Variants, Classes, Controls, Forms,
+  Dialogs, StdCtrls;
+
+type
+
+  TLogonFrm = class(TForm)
+    btnAceptar: TButton;
+    btnSalir: TButton;
+    lblDescripcion: TLabel;
+    lblIngrese: TLabel;
+    edtUser: TEdit;
+    edtPass: TEdit;
+    lblUsuario: TLabel;
+    lblPass: TLabel;
+    procedure btnSalirClick(Sender: TObject);
+    procedure edtUserKeyPress(Sender: TObject; var Key: Char);
+    procedure btnAceptarClick(Sender: TObject);
+    function SetDataBase: Boolean;
+    procedure edtPassKeyPress(Sender: TObject; var Key: Char);
+    procedure FormKeyPress(Sender: TObject; var Key: Char);
+
+  private
+    { Private declarations }
+  public
+    { Public declarations }
+  end;
+
+var
+  LogonFrm: TLogonFrm;
+
+implementation
+uses
+  UMotorSQL, UUsuario, USistema, UPrincipalFrm, StrUtils, UUsuarioDB, Graphics, ProgreesBar,USistemaF;
+
+{$R *.dfm}
+
+procedure TLogonFrm.btnSalirClick(Sender: TObject);
+begin
+  Close;
+end;
+
+procedure TLogonFrm.edtUserKeyPress(Sender: TObject; var Key: Char);
+begin
+  if Ord(Key) = 13 then
+    btnAceptar.Click;
+end;
+
+procedure TLogonFrm.btnAceptarClick(Sender: TObject);
+var
+  U: TUsuario;
+  Ret: Integer;
+  UsuarioDB: TUsuarioDB;
+begin
+  if edtUser.Text = '' then
+  begin
+    edtUser.Color:= clYellow;
+    MessageDlg('No ingresó el nombre de usuario.', mtInformation, [mbYes], 0);
+    edtUser.Color:= clWindow;
+    edtUser.SetFocus;
+  end
+  else if edtPass.Text = '' then
+  begin
+    edtPass.Color:= clYellow;
+    MessageDlg('No ingresó la contraseña.', mtInformation, [mbYes], 0);
+    edtPass.Color:= clWindow;
+    edtPass.SetFocus;
+  end
+  else if SetDataBase then
+  begin
+    U:= TSistema.GetInstance.GetUsuario;
+    U.Logon:= UpperCase(edtUser.Text);
+    U.Pass:= edtPass.Text;
+    UsuarioDB:= TUsuarioDB.Create;
+    Ret:= UsuarioDB.ConsultarLogon(U);
+    if Ret = LOGON_VALID then
+    begin
+      TSistema.GetInstance.SetSecurity;
+      PrincipalFrm.Show;
+      PrincipalFrm.Enabled:= True;
+      PrincipalFrm.stbEstado.Panels[0].Text:= U.Nombre + ' ' + U.Apellido;
+      Hide;
+    end
+    else if Ret = NOT_AUTHORIZATION then
+    begin
+      MessageDlg('El usuario no está autorizado para ingresar al sistema.', mtWarning, [mbYes], 0);
+      edtUser.SetFocus;
+    end
+    else if Ret = USER_INVALID then
+    begin
+      edtUser.Color:= clYellow;
+      MessageDlg('El usuario ingresado no es válido.', mtInformation, [mbYes], 0);
+      edtUser.Color:= clWindow;
+      edtUser.SetFocus;
+    end
+    else if Ret = PASS_INVALID then
+    begin
+      edtPass.Color:= clYellow;
+      MessageDlg('La contraseña ingresada no es correcta.', mtInformation, [mbYes], 0);
+      edtPass.Color:= clWindow;
+      edtPass.SetFocus;
+    end
+    else
+    begin
+      edtUser.Color:= clYellow;
+      MessageDlg('No se pudo validar la identificación del usuario. Por favor, vuelva a intentarlo.', mtInformation, [mbYes], 0);
+      edtUser.Color:= clWindow;
+      edtUser.SetFocus;
+    end;
+  end
+  else
+  begin
+    ShowMessage('Para que el programa pueda ser utilizado debe seleccionar la ubicación de la base de datos');
+    Close;
+  end;
+
+end;
+
+function TLogonFrm.SetDataBase: Boolean;
+begin
+  Result:= False;
+  if TSistema.GetInstance.DataBaseExists then
+  begin
+    TMotorSQL.GetInstance.SetDataBase(TSistema.GetInstance.GetDataBaseFilename);
+    Result:= True;
+  end
+  else
+    TSistema.GetInstance.DeleteIniFile;
+end;
+
+procedure TLogonFrm.edtPassKeyPress(Sender: TObject; var Key: Char);
+begin
+  if Ord(Key) = 13 then
+    btnAceptar.Click;
+
+ end;
+
+procedure TLogonFrm.FormKeyPress(Sender: TObject; var Key: Char);
+ begin
+  if Key = #27 then
+  begin
+   close;
+  end;
+end;
+
+end.
+

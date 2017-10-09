@@ -1,0 +1,88 @@
+unit UMateriales;
+
+interface
+const
+  PLN_EST_CREADO = 'CR';
+  PLN_EST_ACTIVO = 'AC';
+  PLN_EST_INACTIVO = 'IN';
+  PLN_EST_BAJA = 'BA';
+  PLN_EST_SUPERABLE = 'SU';
+  PLN_EST_ERROR = 'ER';
+  PLN_EST_PEND_APR = 'PA';
+  PLN_EST_PEND_REC = 'PR';
+  PLN_EST_TODOS = '*';
+
+type
+  TEstadoMateriales = string[2];
+ TMateriales= class(TObject)
+ private
+   FCodigol: string;
+   FDescripcionl: string;
+   FRevisionl: integer;
+   FEdicionl: integer;
+   FFechal: string;
+   FUsuarioAltal: string;
+   FUsuarioAprobacionl: string;
+   FFechaAprobacionl: string;
+   FUsuarioRecepcionl: string;
+   FUbicacionl: string;
+   FUsuarioCreacionl: string;
+   FFechaCreacionl: string;
+   FUsuarioModifl: string;
+   FFechaModifl: string;
+   FEstado: TEstadoMateriales;
+   FFechaRecepcion: string;
+ public
+   constructor Create;
+   property Codigol: string read FCodigol write FCodigol;
+   property Estado: TEstadoMateriales read FEstado write FEstado;
+   property Descripcionl: string read FDescripcionl write FDescripcionl;
+   property Revisionl: integer read FRevisionl write FRevisionl;
+   property Edicionl: integer read FEdicionl write FEdicionl;
+   property Fechal: string read  FFechal write FFechal;
+   property UsuarioAltal: string read FUsuarioAltal write FUsuarioAltal;
+   property UsuarioAprobacionl: string read FUsuarioAprobacionl write FUsuarioAprobacionl;
+   property FechaAprobacionl: string  read FFechaAprobacionl  write FFechaAprobacionl;
+   property UsuarioRecepcionl: string  read FUsuarioRecepcionl  write FUsuarioRecepcionl;
+   property Ubicacionl: string  read FUbicacionl write FUbicacionl;
+   property UsuarioCreacionl: string read  FUsuarioCreacionl write FUsuarioCreacionl;
+   property FechaCreacionl: string read FFechaCreacionl write FFechaCreacionl;
+   property UsuarioModifl: string  read FUsuarioModifl write FUsuarioModifl;
+   property FechaModifl: string  read FFechaModifl write FFechaModifl;
+   property FechaRecepcion: string read FFechaRecepcion write FFechaRecepcion;
+   function Copiar(M: TMateriales): Boolean;
+
+ end;
+
+
+implementation
+
+Constructor TMateriales.Create;
+begin
+  self.FCodigol:= '';
+  self.FDescripcionl:= '';
+end;
+function TMateriales.Copiar(M: TMateriales): Boolean;
+  begin
+  Result:= True;
+  if Assigned(M) then
+  begin
+     self.FCodigol:= M.Codigol;
+     self.FDescripcionl:= M.Descripcionl;
+     self.FRevisionl:= M.Revisionl;
+     self.FEdicionl:= M.Edicionl;
+     self.FFechal:= M.Fechal;
+     self.FUsuarioAltal:= M.UsuarioAltal;
+     self.FUsuarioAprobacionl:= M.UsuarioAprobacionl;
+     self.FFechaAprobacionl:= M.FechaAprobacionl;
+     self.FUsuarioRecepcionl:= M.UsuarioRecepcionl;
+     self.FUbicacionl:= M.Ubicacionl;
+     self.FUsuarioCreacionl:= M.UsuarioCreacionl;
+     self.FFechaCreacionl:= M.FechaCreacionl;
+     self.FUsuarioModifl:= M.UsuarioModifl;
+     self.FFechaModifl:= M.FechaModifl;
+   end
+    else
+      Result:= False;
+  end;
+end.

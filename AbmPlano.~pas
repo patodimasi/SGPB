@@ -1,0 +1,105 @@
+unit AbmPlano;
+
+interface
+
+uses
+  Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
+  Dialogs, StdCtrls, ComCtrls;
+
+type
+  TAbmPlanoFrm = class(TForm)
+    rbtAlta: TRadioButton;
+    rbtBaja: TRadioButton;
+    rbtModif: TRadioButton;
+    btnAlta: TButton;
+    btnBaja: TButton;
+    btnModif: TButton;
+    stbPlano: TStatusBar;
+    btnSalir: TButton;
+    procedure btnAltaEnter(Sender: Tobject);
+    procedure btnAltaClick(Sender: TObject);
+    procedure btnBajaEnter(Sender: TObject);
+    procedure btnBajaClick(Sender: TObject);
+    procedure btnModifEnter(Sender: TObject);
+    procedure rbtModifEnter(Sender: TObject);
+    procedure rbtAltaEnter(Sender: TObject);
+    procedure rbtBajaEnter(Sender: TObject);
+    procedure btnModifClick(Sender: TObject);
+    procedure btnSalirEnter(Sender: TObject);
+    procedure btnSalirClick(Sender: TObject);
+   
+
+  private
+    { Private declarations }
+  public
+    { Public declarations }
+
+  end;
+
+var
+  AbmPlanoFrm: TAbmPlanoFrm;
+
+implementation
+
+{$R *.dfm}
+uses
+UPlanoAltaFrm,UPlanoBajaFrm,UPlanoAprobarFrm, UPlanoModificarFrm;
+
+procedure TAbmPlanoFrm.btnAltaEnter(Sender: TObject);
+begin
+   stbPlano.SimpleText:= 'Da de Alta el Plano';
+end;
+
+procedure TAbmPlanoFrm.btnBajaEnter(Sender: TObject);
+begin
+  stbPlano.SimpleText:= 'Da de Baja el Plano';
+ end;
+
+procedure TAbmPlanoFrm.btnModifEnter(Sender: TObject);
+begin
+
+   stbPlano.SimpleText:= 'Modifica el Plano';
+  end;
+procedure TAbmPlanoFrm.btnAltaClick(Sender: TObject);
+begin
+
+    PlanoAltaFrm.MainForm := Self;
+    PlanoAltaFrm.Show
+  end;
+procedure TAbmPlanoFrm.btnBajaClick(Sender: TObject);
+begin
+
+    PlanoBajaFrm.MainForm:= Self;
+    PlanoBajaFrm.Show
+
+end;
+
+
+procedure TAbmPlanoFrm.rbtModifEnter(Sender: TObject);
+begin
+  self.stbPlano.SimpleText:= 'Modifica el Plano';
+end;
+procedure TAbmPlanoFrm.rbtAltaEnter(Sender: TObject);
+begin
+  self.stbPlano.SimpleText:= 'Da de Alta el plano';
+end;
+procedure TAbmPlanoFrm.rbtBajaEnter(Sender: TObject);
+begin
+  self.stbPlano.SimpleText:= 'Da de baja el Plano';
+ end; 
+procedure TAbmPlanoFrm.btnModifClick(Sender: TObject);
+begin
+  PlanoModificarFrm.Show;
+end;
+
+procedure TAbmPlanoFrm.btnSalirEnter(Sender: TObject);
+begin
+  self.stbPlano.SimpleText:= 'Regresa a la pantalla anterior';
+end;
+
+procedure TAbmPlanoFrm.btnSalirClick(Sender: TObject);
+begin
+  self.Close;
+end;
+
+end.

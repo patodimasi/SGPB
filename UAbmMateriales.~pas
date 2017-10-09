@@ -1,0 +1,82 @@
+unit UAbmMateriales;
+
+interface
+
+uses
+  Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
+  Dialogs, StdCtrls, ComCtrls;
+
+type
+  TAbmMaterialesFrm = class(TForm)
+    rbAltaM: TRadioButton;
+    rbBajaM: TRadioButton;
+    rbModifM: TRadioButton;
+    btnAltaM: TButton;
+    btnBajaM: TButton;
+    btnModifM: TButton;
+    btnVolverM: TButton;
+    stbMateriales: TStatusBar;
+    procedure btnAltaMEnter(Sender: TObject);
+    procedure btnBajaMEnter(Sender: TObject);
+    procedure btnModifMEnter(Sender: TObject);
+    procedure btnAltaMClick(Sender: TObject);
+    procedure btnBajaMClick(Sender: TObject);
+    procedure btnModifMClick(Sender: TObject);
+    procedure btnVolverMEnter(Sender: TObject);
+    procedure btnVolverMClick(Sender: TObject);
+  private
+    { Private declarations }
+  public
+    { Public declarations }
+  end;
+
+var
+  AbmMaterialesFrm: TAbmMaterialesFrm;
+
+implementation
+uses
+ UMaterialesAltaFrm, UMaterialesBajaFrm, UMaterialesModificarFrm;
+{$R *.dfm}
+
+procedure TAbmMaterialesFrm.btnAltaMEnter(Sender: TObject);
+begin
+  self.stbMateriales.SimpleText:= 'Da de alta la Lista de Materiales';
+end;
+
+procedure TAbmMaterialesFrm.btnBajaMEnter(Sender: TObject);
+begin
+  self.stbMateriales.SimpleText:= 'Da de baja la Lista de Materiales';
+end;
+
+procedure TAbmMaterialesFrm.btnModifMEnter(Sender: TObject);
+begin
+  self.stbMateriales.SimpleText:= 'Modifica la Lista de Materiales';
+end;
+
+procedure TAbmMaterialesFrm.btnAltaMClick(Sender: TObject);
+begin
+  MaterialesAltaFrm.MainForm:= self;
+  MaterialesAltaFrm.Show;
+end;
+
+procedure TAbmMaterialesFrm.btnBajaMClick(Sender: TObject);
+begin
+  MaterialesBajaFrm.Show;
+end;
+
+procedure TAbmMaterialesFrm.btnModifMClick(Sender: TObject);
+begin
+  ListaMaterialesModificarFrm.Show;
+end;
+
+procedure TAbmMaterialesFrm.btnVolverMEnter(Sender: TObject);
+begin
+  self.stbMateriales.SimpleText:= 'Regresa a la pantalla anterior';
+end;
+
+procedure TAbmMaterialesFrm.btnVolverMClick(Sender: TObject);
+begin
+  self.Close;
+end;
+
+end.

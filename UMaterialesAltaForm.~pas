@@ -1,0 +1,46 @@
+unit UMaterialesAltaForm;
+
+interface
+
+uses
+  Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
+  Dialogs, StdCtrls, DB, ADODB, USistema,UMotorSQL;
+
+type
+  TFormAltaMateriales = class(TForm)
+    Button1: TButton;
+    procedure Button1Click(Sender: TObject);
+  private
+    { Private declarations }
+  public
+    { Public declarations }
+  end;
+
+var
+  FormAltaMateriales: TFormAltaMateriales;
+
+implementation
+
+{$R *.dfm}
+
+procedure TFormAltaMateriales.Button1Click(Sender: TObject);
+var
+  sSQL:string;
+begin
+  sSQL := 'insert into materiales (PLN_FECHA,PLN_CODIGO) values ('+QuotedStr('27/11/2007')+','+QuotedStr('PEPA')+')';
+  TMotorSQL.GetInstance.OpenConn;
+  TMotorSQL.GetInstance.ExecuteSQL(sSQL);
+  if TMotorSQL.GetInstance.GetStatus = 0 then
+  begin
+    TMotorSQL.GetInstance.Commit;
+  end
+    else
+  Begin
+    TMotorSQL.GetInstance.Rollback;
+  end;
+
+  TMotorSQL.GetInstance.CloseConn;
+
+end;
+
+end.

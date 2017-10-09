@@ -1,0 +1,277 @@
+object ConsultaUsuariosFrm: TConsultaUsuariosFrm
+  Left = 622
+  Top = 217
+  BorderIcons = [biSystemMenu]
+  BorderStyle = bsSingle
+  Caption = 'Consulta de Usuarios'
+  ClientHeight = 465
+  ClientWidth = 387
+  Color = clSilver
+  Font.Charset = DEFAULT_CHARSET
+  Font.Color = clWindowText
+  Font.Height = -11
+  Font.Name = 'MS Sans Serif'
+  Font.Style = []
+  OldCreateOrder = False
+  Position = poScreenCenter
+  OnActivate = FormActivate
+  OnClose = FormClose
+  OnShow = FormShow
+  PixelsPerInch = 96
+  TextHeight = 13
+  object lblNombre: TLabel
+    Left = 18
+    Top = 18
+    Width = 49
+    Height = 16
+    Alignment = taRightJustify
+    Caption = 'Nombre'
+    Font.Charset = DEFAULT_CHARSET
+    Font.Color = clWindowText
+    Font.Height = -13
+    Font.Name = 'MS Sans Serif'
+    Font.Style = []
+    ParentFont = False
+  end
+  object lblApellido: TLabel
+    Left = 17
+    Top = 42
+    Width = 50
+    Height = 16
+    Alignment = taRightJustify
+    Caption = 'Apellido'
+    Font.Charset = DEFAULT_CHARSET
+    Font.Color = clWindowText
+    Font.Height = -13
+    Font.Name = 'MS Sans Serif'
+    Font.Style = []
+    ParentFont = False
+  end
+  object lblLogon: TLabel
+    Left = 20
+    Top = 66
+    Width = 47
+    Height = 16
+    Alignment = taRightJustify
+    Caption = 'Usuario'
+    Font.Charset = DEFAULT_CHARSET
+    Font.Color = clWindowText
+    Font.Height = -13
+    Font.Name = 'MS Sans Serif'
+    Font.Style = []
+    ParentFont = False
+  end
+  object btnVolver: TButton
+    Left = 312
+    Top = 408
+    Width = 65
+    Height = 25
+    Caption = '&Volver'
+    TabOrder = 11
+    OnClick = btnVolverClick
+    OnEnter = btnVolverEnter
+  end
+  object stbUsuario: TStatusBar
+    Left = 0
+    Top = 446
+    Width = 387
+    Height = 19
+    BiDiMode = bdRightToLeftReadingOnly
+    Panels = <>
+    ParentBiDiMode = False
+    SimplePanel = True
+    SizeGrip = False
+  end
+  object btnBuscar: TButton
+    Left = 304
+    Top = 16
+    Width = 65
+    Height = 25
+    Caption = '&Buscar'
+    TabOrder = 4
+    OnClick = btnBuscarClick
+    OnEnter = btnBuscarEnter
+  end
+  object btnLimpiar: TButton
+    Left = 240
+    Top = 408
+    Width = 65
+    Height = 25
+    Caption = '&Limpiar'
+    TabOrder = 10
+    OnClick = btnLimpiarClick
+    OnEnter = btnLimpiarEnter
+  end
+  object btnModificar: TButton
+    Left = 96
+    Top = 408
+    Width = 65
+    Height = 25
+    Caption = '&Modificar'
+    TabOrder = 8
+    OnClick = btnModificarClick
+    OnEnter = btnModificarEnter
+  end
+  object btnBaja: TButton
+    Left = 168
+    Top = 408
+    Width = 65
+    Height = 25
+    Caption = 'Dar de &Baja'
+    TabOrder = 9
+    OnClick = btnBajaClick
+    OnEnter = btnBajaEnter
+  end
+  object btnTodos: TButton
+    Left = 304
+    Top = 48
+    Width = 65
+    Height = 25
+    Caption = '&Todos'
+    TabOrder = 5
+    OnClick = btnTodosClick
+    OnEnter = btnTodosEnter
+  end
+  object ListView: TListView
+    Left = 8
+    Top = 168
+    Width = 369
+    Height = 225
+    Columns = <
+      item
+        Caption = 'Usuario'
+        Width = 100
+      end
+      item
+        Caption = 'Nombre'
+        Width = 100
+      end
+      item
+        Caption = 'Apellido'
+        Width = 100
+      end
+      item
+        Caption = 'Estado'
+        Width = 40
+      end>
+    ColumnClick = False
+    GridLines = True
+    HideSelection = False
+    ReadOnly = True
+    RowSelect = True
+    TabOrder = 6
+    ViewStyle = vsReport
+  end
+  object btnDetalles: TButton
+    Left = 24
+    Top = 408
+    Width = 65
+    Height = 25
+    Caption = '&Detalles'
+    TabOrder = 7
+    OnClick = btnDetallesClick
+    OnEnter = btnDetallesEnter
+  end
+  object edtNombre: TEdit
+    Left = 72
+    Top = 16
+    Width = 225
+    Height = 21
+    MaxLength = 30
+    TabOrder = 0
+    OnEnter = edtNombreEnter
+  end
+  object edtApellido: TEdit
+    Left = 72
+    Top = 40
+    Width = 225
+    Height = 21
+    MaxLength = 30
+    TabOrder = 1
+    OnEnter = edtApellidoEnter
+  end
+  object edtLogon: TEdit
+    Left = 72
+    Top = 64
+    Width = 81
+    Height = 21
+    CharCase = ecUpperCase
+    MaxLength = 10
+    TabOrder = 2
+    OnEnter = edtLogonEnter
+  end
+  object gbEstados: TGroupBox
+    Left = 8
+    Top = 96
+    Width = 369
+    Height = 57
+    Caption = ' Estados '
+    Font.Charset = DEFAULT_CHARSET
+    Font.Color = clWindowText
+    Font.Height = -13
+    Font.Name = 'MS Sans Serif'
+    Font.Style = []
+    ParentFont = False
+    TabOrder = 3
+    object chkActivo: TCheckBox
+      Left = 12
+      Top = 24
+      Width = 69
+      Height = 17
+      Caption = 'Activo'
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -13
+      Font.Name = 'MS Sans Serif'
+      Font.Style = []
+      ParentFont = False
+      TabOrder = 0
+      OnEnter = chkActivoEnter
+    end
+    object chkInactivo: TCheckBox
+      Left = 92
+      Top = 24
+      Width = 69
+      Height = 17
+      Caption = 'Inactivo'
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -13
+      Font.Name = 'MS Sans Serif'
+      Font.Style = []
+      ParentFont = False
+      TabOrder = 1
+      OnEnter = chkInactivoEnter
+    end
+    object chkError: TCheckBox
+      Left = 300
+      Top = 24
+      Width = 61
+      Height = 17
+      Caption = 'Error'
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -13
+      Font.Name = 'MS Sans Serif'
+      Font.Style = []
+      ParentFont = False
+      TabOrder = 3
+      OnEnter = chkErrorEnter
+    end
+    object chkBaja: TCheckBox
+      Left = 180
+      Top = 24
+      Width = 109
+      Height = 17
+      Caption = 'Dado de baja'
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -13
+      Font.Name = 'MS Sans Serif'
+      Font.Style = []
+      ParentFont = False
+      TabOrder = 2
+      OnEnter = chkBajaEnter
+    end
+  end
+end

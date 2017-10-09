@@ -1,0 +1,479 @@
+unit USubinstructivoDB;
+
+interface
+uses
+  UObjectDB, UMotorSQL, USubinstructivo, ComCtrls;
+
+const
+  PLN_ALTA_OK = 1;
+  PLN_ALTA_FAILED = 2;
+  PLN_APR_OK = 1;
+  PLN_APR_FAILED = 2;
+  PLN_REC_OK = 1;
+  PLN_REC_FAILED = 2;
+  PLN_MODIF_OK = 1;
+  PLN_MODIF_FAILED = 2;
+  PLN_SUPERAR_OK = 1;
+  PLN_SUPERAR_FAILED = 2;
+  PLN_BAJA_OK = 1;
+  PLN_BAJA_FAILED = 2;
+  PLN_MIG_OK = 1;
+  PLN_MIG_FAILED = 2;
+
+  PLN_SEL_ERRONEA = 3;
+
+  PLN_PEND_TODOS = 1;
+  PLN_PEND_APR = 2;
+  PLN_PEND_REC = 3;
+
+  PLN_BAJA = 1;
+  PLN_RECUPERAR = 2;
+
+type
+  TSubinstructivoDB = class(TObjectDB)
+
+  public
+      function Alta(S: TSubinstructivo; Tabla: string; ES: string): Integer;
+      function Aprobar(S: TSubinstructivo): Integer;
+      function Recibir(S: TSubinstructivo): Integer;
+      function GetSubinstructivo(S: TSubinstructivo; E: TEstadoS): Boolean;
+      function GenerarSubinstructivo(S: TSubinstructivo): Boolean;
+      function Consulta(ListView: TListView; SQL: string): Boolean;
+      function Superar(SH: TSubinstructivo; SN: TSubinstructivo): Integer;
+      function Baja(S: TSubinstructivo; Tabla: string): Integer;
+      function Modificacion(S: TSubinstructivo): Integer;
+
+  end;
+
+implementation
+
+uses
+  SysUtils, ADODB, USistema, Classes, StrUtils;
+
+function TSubinstructivoDB.Modificacion(S: TSubinstructivo): Integer;
+var
+  sSQL: string;
+  MSQL: TMotorSQL;
+
+begin
+  Result:= PLN_MODIF_FAILED;
+
+  // Establezco una conexion con la BD
+  MSQL:= TMotorSQL.GetInstance();
+  MSQL.OpenConn;
+
+  // Si se pudo realizar...
+  if MSQL.GetStatus = 0 then
+  begin
+    sSQL:= Format('update SUBINSTRUCTIVOSPRODUCCION ' +
+                  'set PLN_DESCRIPCION = %s ' +
+                  ', PLN_UBICACION = %s ' +
+                  ', USUARIO_MODIF = %s ' +
+                  ', FECHA_MODIF = %s ' +
+                  'where PLN_CODIGO = %s'
+                    , [Formatear(S.Descripcion),
+                       Formatear(S.Ubicacion),
+                       Formatear(TSistema.GetInstance.GetUsuario.Logon),
+                       Formatear(DateToStr(Date)),
+                       Formatear(S.Codigo)]);
+    try
+      MSQL.ExecuteSQL(sSQL);
+      if MSQL.GetStatus = 0 then
+      begin
+        MSQL.Commit;
+        if MSQL.GetStatus = 0 then
+          Result:= PLN_MODIF_OK;
+
+        MSQL.CloseConn;
+      end;
+    except
+      Result:= PLN_MODIF_FAILED;
+    end;
+  end;
+end;
+
+function TSubinstructivoDB.Baja(S: TSubinstructivo; Tabla: string): Integer;
+var
+  sSQL: string;
+  MSQL: TMotorSQL;
+
+begin
+  Result:= PLN_BAJA_FAILED;
+
+  // Establezco una conexion con la BD
+  MSQL:= TMotorSQL.GetInstance();
+  MSQL.OpenConn;
+
+  // Si se pudo realizar...
+  if MSQL.GetStatus = 0 then
+  begin
+    sSQL:= 'delete from ' + Tabla + ' where PLN_CODIGO = ' + Formatear(S.Codigo)+ ' and PLN_NRO_REV = ' + IntToStr(S.Revision) +
+           ' and PLN_DESCRIPCION = ' + Formatear(S.Descripcion);
+
+    try
+      MSQL.ExecuteSQL(sSQL);
+      if MSQL.GetStatus = 0 then
+      begin
+        MSQL.Commit;
+        if MSQL.GetStatus = 0 then
+          Result:= PLN_BAJA_OK;
+
+        MSQL.CloseConn;
+      end;
+    except
+      Result:= PLN_BAJA_FAILED;
+    end;
+  end;
+end;
+
+function TSubinstructivoDB.Superar(SH: TSubinstructivo; SN: TSubinstructivo): Integer;
+var
+  CodRet: Integer;
+begin
+  CodRet:= PLN_SUPERAR_FAILED;
+  if Alta(SH, TAB_HISTORICO_SUBINSTRUCTIVO,'S') = PLN_ALTA_OK then
+    if Baja(SH, TAB_SUBINSTRUCTIVO) = PLN_BAJA_OK then
+      if Alta(SN, TAB_SUBINSTRUCTIVO,'NS') = PLN_ALTA_OK then
+        CodRet:= PLN_SUPERAR_OK;
+
+  Result:= CodRet;
+end;
+
+function TSubinstructivoDB.Consulta(ListView: TListView; SQL: string): Boolean;
+var
+  MSQL: TMotorSQL;
+  Dst: TADODataset;
+  ItemPln: TListItem;
+
+begin
+  Result:= False;
+
+  // Establezco una conexion con la BD
+  MSQL:= TMotorSQL.GetInstance();
+  MSQL.OpenConn;
+
+  // Si se pudo realizar...
+  if MSQL.GetStatus = 0 then
+  begin
+
+    Dst:= TADODataset.Create(nil);
+    try
+      // Obtengo la conexion a la BD
+      Dst.Connection:= MSQL.GetConn;
+      Dst.CommandText:= SQL;
+      Dst.Open;
+      if not Dst.Eof then
+      begin
+        while not Dst.Eof do
+        begin
+          ItemPln:= ListView.Items.Add;
+          ItemPln.Caption:= Dst.FieldByName('PLN_FECHA').AsString;
+          ItemPln.SubItems.Add(Dst.FieldByName('PLN_CODIGO').AsString);
+          ItemPln.SubItems.Add(IntToStr(Dst.FieldByName('PLN_NRO_REV').AsInteger));
+         // ItemPln.SubItems.Add(Dst.FieldByName('PLN_ESTADO').AsString);
+          ItemPln.SubItems.Add(Dst.FieldByName('PLN_DESCRIPCION').AsString);
+          ItemPln.SubItems.Add(Dst.FieldByName('PLN_USUARIO_ALTA').AsString);
+          ItemPln.SubItems.Add(Dst.FieldByName('PLN_USUARIO_APR').AsString);
+          ItemPln.SubItems.Add(Dst.FieldByName('PLN_FECHA_APR').AsString);
+          ItemPln.SubItems.Add(Dst.FieldByName('PLN_USUARIO_REC').AsString);
+          ItemPln.SubItems.Add(Dst.FieldByName('PLN_FECHA_REC').AsString);
+          ItemPln.SubItems.Add(Dst.FieldByName('PLN_UBICACION').AsString);
+          ItemPln.SubItems.Add(Dst.FieldByName('PLN_ESTADO').AsString);
+          ItemPln.SubItems.Add(Dst.FieldByName('PLN_SUPERADO').AsString);
+          Dst.Next;
+        end;
+        Result:= True;
+      end;
+      Dst.Close;
+      MSQL.CloseConn;
+    finally
+      Dst.Free;
+    end;
+  end;
+end;
+
+function TSubinstructivoDB.GenerarSubinstructivo(S: TSubinstructivo): Boolean;
+var
+  sSQL: string;
+  MSQL: TMotorSQL;
+  Dst: TADODataset;
+  CodNum: Integer;
+  CodSerie: Integer;
+  CodMax: string;
+
+begin
+
+  Result:= False;
+
+  // Establezco una conexion con la BD
+  MSQL:= TMotorSQL.GetInstance();
+  MSQL.OpenConn;
+
+  // Si se pudo realizar...
+  if MSQL.GetStatus = 0 then
+  begin
+
+    sSQL:= 'select max(PLN_CODIGO) as CodMax from SUBINSTRUCTIVOSPRODUCCION ';
+
+    Dst:= TADODataset.Create(nil);
+    try
+      // Obtengo la conexion a la BD
+      Dst.Connection:= MSQL.GetConn;
+      Dst.CommandText:= sSQL;
+      Dst.Open;
+      CodMax:= Dst.FieldByName('CodMax').AsString;
+      if CodMax <> '' then
+      begin
+        CodSerie:= StrToInt(Copy(CodMax, 3, 1));
+       // CodNum:= StrToInt(Copy(CodMax, 5, 3))+1;
+       CodNum:= StrToInt(Copy(CodMax, 5, 4))+1;
+
+        //if CodNum > 999 then
+        if CodNum > 9999 then
+        begin
+          Inc(CodSerie);
+          CodNum:= 1;
+        end;
+
+        //P.Codigo:= 'DB'+IntToStr(CodSerie)+'-'+LPad(IntToStr(CodNum), 3, '0');
+          S.Codigo:= 'SB'+IntToStr(CodSerie)+'-'+LPad(IntToStr(CodNum), 3, '0');
+      end
+      else
+        //P.Codigo:= 'DB4-001';
+        S.Codigo:= 'SB9-001';
+
+      Dst.Close;
+      MSQL.CloseConn;
+      Result:= True;
+    finally
+      Dst.Free;
+    end;
+  end;
+end;
+
+function TSubinstructivoDB.GetSubinstructivo(S: TSubinstructivo; E: TEstadoS): Boolean;
+var
+  sSQL: string;
+  MSQL: TMotorSQL;
+  Dst: TADODataset;
+
+begin
+
+  Result:= False;
+
+  // Establezco una conexion con la BD
+  MSQL:= TMotorSQL.GetInstance();
+  MSQL.OpenConn;
+
+  // Si se pudo realizar...
+  if MSQL.GetStatus = 0 then
+  begin
+
+    sSQL:= 'select PLN_CODIGO ' +
+                  ', PLN_DESCRIPCION ' +
+                  ', PLN_NRO_REV ' +
+                  ', PLN_NRO_EDIC ' +
+                  ', PLN_ESTADO ' +
+                  ', PLN_FECHA ' +
+                  ', PLN_USUARIO_ALTA ' +
+                  ', PLN_USUARIO_APR ' +
+                  ', PLN_FECHA_APR ' +
+                  ', PLN_USUARIO_REC ' +
+                  ', PLN_FECHA_REC ' +
+                  ', PLN_UBICACION ' +
+                  ', USUARIO_CREACION ' +
+                  ', FECHA_CREACION ' +
+                  ', USUARIO_MODIF ' +
+                  ', FECHA_MODIF ' +
+            ' from SUBINSTRUCTIVOSPRODUCCION ' +
+            ' where PLN_CODIGO = ' + Formatear(S.Codigo);
+
+
+    if E = PLN_EST_SUPERABLE then
+    sSQL:= sSQL + ' and PLN_ESTADO in (''AC'')'
+    else if E <> PLN_EST_TODOS then
+      sSQL:= sSQL + ' and PLN_ESTADO = ''' + E + '''';
+
+    Dst:= TADODataset.Create(nil);
+    try
+      // Obtengo la conexion a la BD
+      Dst.Connection:= MSQL.GetConn;
+      Dst.CommandText:= sSQL;
+      Dst.Open;
+      if not Dst.Eof then
+      begin
+        S.Codigo:= Dst.FieldByName('PLN_CODIGO').AsString;
+        S.Descripcion:= Dst.FieldByName('PLN_DESCRIPCION').AsString;
+        S.Revision:= Dst.FieldByName('PLN_NRO_REV').AsInteger;
+        S.Edicion:= Dst.FieldByName('PLN_NRO_EDIC').AsInteger;
+        S.Estado:= Dst.FieldByName('PLN_ESTADO').AsString;
+        S.Fecha:= Dst.FieldByName('PLN_FECHA').AsString;
+        S.UsuarioAlta:= Dst.FieldByName('PLN_USUARIO_ALTA').AsString;
+        S.UsuarioAprobacion:= Dst.FieldByName('PLN_USUARIO_APR').AsString;
+        S.FechaAprobacion:= Dst.FieldByName('PLN_FECHA_APR').AsString;
+        S.UsuarioRecepcion:= Dst.FieldByName('PLN_USUARIO_REC').AsString;
+        S.FechaRecepcion:= Dst.FieldByName('PLN_FECHA_REC').AsString;
+        S.Ubicacion:= Dst.FieldByName('PLN_UBICACION').AsString;
+        S.UsuarioCreacion:= Dst.FieldByName('USUARIO_CREACION').AsString;
+        S.FechaCreacion:= Dst.FieldByName('FECHA_CREACION').AsString;
+        S.UsuarioModif:= Dst.FieldByName('USUARIO_MODIF').AsString;
+        S.FechaModif:= Dst.FieldByName('FECHA_MODIF').AsString;
+        Result:= True;
+      end;
+      Dst.Close;
+      MSQL.CloseConn;
+    finally
+      Dst.Free;
+    end;
+  end;
+end;
+
+function TSubinstructivoDB.Recibir(S: TSubinstructivo): Integer;
+var
+  sSQL: string;
+  MSQL: TMotorSQL;
+
+begin
+  Result:= PLN_REC_FAILED;
+
+  // Establezco una conexion con la BD
+  MSQL:= TMotorSQL.GetInstance();
+  MSQL.OpenConn;
+
+  // Si se pudo realizar...
+  if MSQL.GetStatus = 0 then
+  begin
+    sSQL:= Format('update SUBINSTRUCTIVOSPRODUCCION ' +
+                  'set PLN_USUARIO_REC = %s ' +
+                  ', PLN_FECHA_REC = %s ' +
+                  ', PLN_ESTADO = %s ' +
+                  ', USUARIO_MODIF = %s ' +
+                  ', FECHA_MODIF = %s ' +
+                  'where PLN_CODIGO = %s'
+                    , [Formatear(TSistema.GetInstance.GetUsuario.Logon),
+                       Formatear(DateToStr(Date)),
+                       Formatear(PLN_EST_ACTIVO),
+                       Formatear(TSistema.GetInstance.GetUsuario.Logon),
+                       Formatear(DateToStr(Date)),
+                       Formatear(S.Codigo)]);
+    try
+      MSQL.ExecuteSQL(sSQL);
+      if MSQL.GetStatus = 0 then
+      begin
+        MSQL.Commit;
+        if MSQL.GetStatus = 0 then
+          Result:= PLN_REC_OK;
+
+        MSQL.CloseConn;
+      end;
+    except
+      Result:= PLN_REC_FAILED;
+    end;
+  end;
+end;
+
+function  TSubinstructivoDB.Aprobar(S: TSubinstructivo): Integer;
+var
+  sSQL: string;
+  MSQL: TMotorSQL;
+
+begin
+  Result:= PLN_APR_FAILED;
+
+  // Establezco una conexion con la BD
+  MSQL:= TMotorSQL.GetInstance();
+  MSQL.OpenConn;
+
+  // Si se pudo realizar...
+  if MSQL.GetStatus = 0 then
+  begin
+    sSQL:= Format('update SUBINSTRUCTIVOSPRODUCCION ' +
+                  'set PLN_USUARIO_APR = %s ' +
+                  ', PLN_FECHA_APR = %s ' +
+                  ', PLN_ESTADO = %s ' +
+                  ', USUARIO_MODIF = %s ' +
+                  ', FECHA_MODIF = %s ' +
+                  'where PLN_CODIGO = %s'
+                    , [Formatear(TSistema.GetInstance.GetUsuario.Logon),
+                       Formatear(DateToStr(Date)),
+                       Formatear(PLN_EST_PEND_REC),
+                       Formatear(TSistema.GetInstance.GetUsuario.Logon),
+                       Formatear(DateToStr(Date)),
+                       Formatear(S.Codigo)]);
+    try
+      MSQL.ExecuteSQL(sSQL);
+      if MSQL.GetStatus = 0 then
+      begin
+        MSQL.Commit;
+        if MSQL.GetStatus = 0 then
+          Result:= PLN_APR_OK;
+
+        MSQL.CloseConn;
+      end;
+    except
+      Result:= PLN_APR_FAILED;
+    end;
+  end;
+end;
+
+function TSubinstructivoDB.Alta(S: TSubinstructivo; Tabla: string; ES: string): Integer;
+var
+  sSQL: string;
+  MSQL: TMotorSQL;
+
+begin
+  Result:= PLN_ALTA_FAILED;
+
+  // Establezco una conexion con la BD
+  MSQL:= TMotorSQL.GetInstance();
+  MSQL.OpenConn;
+
+  // Si se pudo realizar...
+  if MSQL.GetStatus = 0 then
+  begin
+    sSQL:= Format('insert into ' + Tabla +
+                  ' ( PLN_CODIGO ' +
+                  ', PLN_DESCRIPCION ' +
+                  ', PLN_NRO_REV ' +
+                  ', PLN_NRO_EDIC ' +
+                  ', PLN_ESTADO ' +
+                  ', PLN_FECHA ' +
+                  ', PLN_USUARIO_ALTA ' +
+                  ', PLN_USUARIO_APR ' +
+                  ', PLN_FECHA_APR ' +
+                  ', PLN_USUARIO_REC ' +
+                  ', PLN_FECHA_REC ' +
+                  ', PLN_UBICACION ' +
+                  ', USUARIO_CREACION ' +
+                  ', FECHA_CREACION ' +
+                  ', USUARIO_MODIF ' +
+                  ', FECHA_MODIF ' +
+                  ', PLN_SUPERADO )' +
+                  ' VALUES (%s, %s, %d, %d, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %S)'
+                    , [Formatear(S.Codigo), Formatear(S.Descripcion), S.Revision,
+                       S.Edicion, Formatear(S.Estado), Formatear(S.Fecha),
+                       Formatear(S.UsuarioAlta),
+                       Formatear(S.UsuarioAprobacion), Formatear(S.FechaAprobacion),
+                       Formatear(S.UsuarioRecepcion), Formatear(S.FechaRecepcion),
+                       Formatear(S.Ubicacion),
+                       Formatear(S.UsuarioCreacion), Formatear(S.FechaCreacion),
+                       Formatear(S.UsuarioModif), Formatear(S.FechaModif),QuotedStr(ES)]);
+    try
+      MSQL.ExecuteSQL(sSQL);
+      if MSQL.GetStatus = 0 then
+      begin
+        MSQL.Commit;
+        if MSQL.GetStatus = 0 then
+          Result:= PLN_ALTA_OK;
+
+        MSQL.CloseConn;
+      end;
+    except
+      Result:= PLN_ALTA_FAILED;
+    end;
+  end;
+end;
+
+
+
+end.

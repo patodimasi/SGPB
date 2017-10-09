@@ -1,0 +1,62 @@
+unit ULista;
+
+interface
+const
+  PLN_EST_CREADO = 'CR';
+  PLN_EST_ACTIVO = 'AC';
+  PLN_EST_INACTIVO = 'IN';
+  PLN_EST_BAJA = 'BA';
+  PLN_EST_SUPERABLE = 'SU';
+  PLN_EST_ERROR = 'ER';
+  PLN_EST_PEND_APR = 'PA';
+  PLN_EST_PEND_REC = 'PR';
+  PLN_EST_TODOS = '*';
+
+type
+  TEstadoLista = string[2];
+
+  TLista = class(TObject)
+
+  private
+    FCodigoL: string;
+    FDescripcionL: string;
+    FRevisionL: Integer;
+    FEdicionL: Integer;
+    FEstadoL: TEstadoLista;
+    FFechaL: string;
+    FUsuarioAltaL: string;
+    FUsuarioAprobacionL: string;
+    FFechaAprobacionL: string;
+    FUsuarioRecepcionL: string;
+    FFechaRecepcionL: string;
+    FUbicacionL: string;
+    FSuperadoL: string;
+    FUsuarioCreacionL: string;
+    FFechaCreacionL: string;
+    FUsuarioModifL: string;
+    FFechaModifL: string;
+
+  public
+    constructor Create;
+    property CodigoL: string read FCodigoL write FCodigoL;
+    property DescripcionL: string read FDescripcionL write FDescripcionL;
+    property RevisionL: Integer read FRevisionL write FRevisionL;
+    property EdicionL: Integer read FEdicionL write FEdicionL;
+    property EstadoL: TEstadoLista read FEstadoL write FEstadoL;
+    property FechaL: string read FFechaL write FFechaL;
+    property UsuarioAltaL: string read FUsuarioAltaL write FUsuarioAltaL;
+    property UsuarioAprobacionL: string read FUsuarioAprobacionL write FUsuarioAprobacionL;
+    property FechaAprobacionL: string read FFechaAprobacionL write FFechaAprobacionL;
+    property UsuarioRecepcionL: string read FUsuarioRecepcionL write FUsuarioRecepcionL;
+    property FechaRecepcionL: string read FFechaRecepcionL write FFechaRecepcionL;
+    property UbicacionL: string read FUbicacionL write FUbicacionL;
+    property SuperadoL: string read FSuperadoL write FSuperadoL;
+    property UsuarioCreacionL: string read FUsuarioCreacionL write FUsuarioCreacionL;
+    property FechaCreacionL: string read FFechaCreacionL write FFechaCreacionL;
+    property UsuarioModifL: string read FUsuarioModifL write FUsuarioModifL;
+    property FechaModifL: string read FFechaModifL write FFechaModifL;
+    function Copiar(L: TLista): Boolean;
+
+implementation
+
+end.
