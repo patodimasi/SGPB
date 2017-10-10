@@ -393,6 +393,7 @@ type
     procedure ListViewipCustomDrawItem(Sender: TCustomListView;
       Item: TListItem; State: TCustomDrawState; var DefaultDraw: Boolean);
     procedure btnVolveripClick(Sender: TObject);
+    procedure btnAbriripClick(Sender: TObject);
 
   private
     FSQL: string;
@@ -2882,6 +2883,20 @@ begin
   MainForm.Show;
   Hide;
   MainForm:= nil;
+end;
+
+procedure TConsultasFrm.btnAbriripClick(Sender: TObject);
+begin
+ if ListViewip.Selected.SubItems[8] <> '' then
+  begin
+    if ShellExecute( Self.Handle, 'explore'
+                   , PChar(ListView.Selected.SubItems[8])
+                   , nil, nil, SW_SHOWMAXIMIZED) <= 32 then
+      Application.MessageBox('La ubicación del plano no existe', 'SGPB', MB_ICONEXCLAMATION);
+  end
+  else
+    Application.MessageBox('El registro del plano seleccionado no tiene ingresada la ubicación del mismo', 'SGPB', MB_ICONINFORMATION,);
+
 end;
 
 end.

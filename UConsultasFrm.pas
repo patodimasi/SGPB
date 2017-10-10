@@ -394,6 +394,7 @@ type
       Item: TListItem; State: TCustomDrawState; var DefaultDraw: Boolean);
     procedure btnVolveripClick(Sender: TObject);
     procedure btnAbriripClick(Sender: TObject);
+    procedure edtCodigoipKeyPress(Sender: TObject; var Key: Char);
 
   private
     FSQL: string;
@@ -2897,6 +2898,15 @@ begin
   else
     Application.MessageBox('El registro del plano seleccionado no tiene ingresada la ubicación del mismo', 'SGPB', MB_ICONINFORMATION,);
 
+end;
+
+procedure TConsultasFrm.edtCodigoipKeyPress(Sender: TObject;
+  var Key: Char);
+begin
+  if (key=#13) then
+  begin
+    btnBuscaripClick(Sender);
+  end;
 end;
 
 end.

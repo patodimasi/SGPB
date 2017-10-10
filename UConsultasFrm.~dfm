@@ -4399,6 +4399,7 @@ object ConsultasFrm: TConsultasFrm
         Height = 25
         Caption = '&Abrir'
         TabOrder = 13
+        OnClick = btnAbriripClick
       end
       object btnBuscarip: TButton
         Left = 304

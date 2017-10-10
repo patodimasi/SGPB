@@ -1,6 +1,6 @@
 object ConsultasFrm: TConsultasFrm
-  Left = 771
-  Top = 215
+  Left = 461
+  Top = 162
   BorderIcons = [biSystemMenu]
   BorderStyle = bsSingle
   Caption = 'Consultas'
@@ -4054,6 +4054,7 @@ object ConsultasFrm: TConsultasFrm
         Width = 81
         Height = 21
         TabOrder = 1
+        OnKeyPress = edtCodigoipKeyPress
       end
       object edtNroRevip: TEdit
         Left = 96
