@@ -1,8 +1,8 @@
 object PrincipalFrm: TPrincipalFrm
-  Left = 614
-  Top = 310
-  Width = 869
-  Height = 640
+  Left = 482
+  Top = 203
+  Width = 826
+  Height = 573
   Caption = 'Sistema de Gesti'#243'n de Planos BOHERDI ELECTRONICA'
   Color = clMedGray
   Enabled = False
@@ -1967,8 +1967,8 @@ object PrincipalFrm: TPrincipalFrm
   end
   object stbEstado: TStatusBar
     Left = 0
-    Top = 552
-    Width = 861
+    Top = 485
+    Width = 818
     Height = 34
     BiDiMode = bdRightToLeftReadingOnly
     Panels = <
@@ -1994,7 +1994,7 @@ object PrincipalFrm: TPrincipalFrm
   object ToolBar1: TToolBar
     Left = 0
     Top = 0
-    Width = 861
+    Width = 818
     Height = 29
     ButtonHeight = 31
     ButtonWidth = 40
@@ -2197,7 +2197,6 @@ object PrincipalFrm: TPrincipalFrm
           Caption = 'Instructivos de Producci'#243'n'
           object Alta4: TMenuItem
             Caption = 'Alta'
-            Enabled = False
             ImageIndex = 42
             OnClick = Alta4Click
           end

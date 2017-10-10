@@ -1,6 +1,6 @@
 object InstructivosMaterialesAltaFrm: TInstructivosMaterialesAltaFrm
-  Left = 364
-  Top = 315
+  Left = 740
+  Top = 239
   BorderStyle = bsSingle
   Caption = 'Alta Instructivos de Produccion'
   ClientHeight = 168
@@ -1935,6 +1935,7 @@ object InstructivosMaterialesAltaFrm: TInstructivosMaterialesAltaFrm
     9C4100009C4100009C4100009C4100009C4100009C41}
   OldCreateOrder = False
   Position = poScreenCenter
+  OnClose = FormClose
   OnShow = FormShow
   PixelsPerInch = 96
   TextHeight = 13

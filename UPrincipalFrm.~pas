@@ -780,7 +780,8 @@ end;
 
 procedure TPrincipalFrm.Modificar1Click(Sender: TObject);
 begin
-  ModificarSubinstructivosFrm.Show;
+  SubinstructivosProdAprobarFrm.Operacion:= TModificacion.Create;
+  SubinstructivosProdAprobarFrm.Show;
 end;
 
 procedure TPrincipalFrm.Aprobar2Click(Sender: TObject);

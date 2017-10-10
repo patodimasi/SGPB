@@ -4,7 +4,7 @@ interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls, ComCtrls, USistema, UDVarios, UMotorSql, ADODB, UObjectDB,shlobj,UUtiles, UPantallaFrm;
+  Dialogs, StdCtrls, ComCtrls, UPantallaFrm,UMotorSQL;
 
 type
   TInstructivosMaterialesAltaFrm = class(TPantallaFrm)
@@ -21,8 +21,6 @@ type
     StatusBar1: TStatusBar;
     procedure btnVolverdvClick(Sender: TObject);
     procedure btnLimpiardvClick(Sender: TObject);
-    procedure FormShow(Sender: TObject);
-    procedure btnConfirmardvClick(Sender: TObject);
     procedure btnDirdvClick(Sender: TObject);
     procedure edtDescripciondvEnter(Sender: TObject);
     procedure edtUbicaciondvEnter(Sender: TObject);
@@ -30,6 +28,10 @@ type
     procedure btnConfirmardvEnter(Sender: TObject);
     procedure btnLimpiardvEnter(Sender: TObject);
     procedure btnVolverdvEnter(Sender: TObject);
+    procedure btnConfirmardvClick(Sender: TObject);
+    procedure FormShow(Sender: TObject);
+    procedure FormClose(Sender: TObject; var Action: TCloseAction);
+
 
   private
     procedure GenerarCodigo;
@@ -46,7 +48,11 @@ var
 
 implementation
 
+uses
+  UInstructivo, USistema, UInstructivoDB, UUtiles, shlobj;
+
 {$R *.dfm}
+
 procedure TInstructivosMaterialesAltaFrm.LockScreen;
 begin
   self.lblCodigodv.Enabled:= False;
@@ -60,7 +66,8 @@ begin
   self.btnConfirmardv.Visible:= False;
   self.btnLimpiardv.Visible:= False;
   self.btnVolverdv.SetFocus;
-end; 
+end;
+
 procedure TInstructivosMaterialesAltaFrm.UnLockScreen;
 begin
   self.lblCodigodv.Enabled:= True;
@@ -74,10 +81,10 @@ begin
   self.btnLimpiardv.Visible:= True;
 
 end;
+
 procedure TInstructivosMaterialesAltaFrm.btnVolverdvClick(Sender: TObject);
 begin
-  self.Close;
-{  if not self.FLocked then
+  if not self.FLocked then
   begin
     TSistema.GetInstance.UnLockScreen(SCR_INSTRUCTIVOSPROD_ALTA);
   end
@@ -90,7 +97,7 @@ begin
     self.MainForm.Enabled:= True;
     self.MainForm.Show;
     Hide;
-    self.MainForm:= nil;}
+    self.MainForm:= nil;
 end;
 
 procedure TInstructivosMaterialesAltaFrm.btnLimpiardvClick(Sender: TObject);
@@ -99,115 +106,7 @@ begin
   self.edtUbicaciondv.Text:= '';
   self.edtDescripciondv.SetFocus;
 end;
-procedure TInstructivosMaterialesAltaFrm.GenerarCodigo;
-var
-  sSQL: string;
-  MSQL: TMotorSQL;
-  Dst: TADODataset;
-  CodMax: string;
-  iCodMax: integer;
-  iUltimoCodMax :integer;
-begin
-  // Establezco una conexion con la BD
-  MSQL:= TMotorSQL.GetInstance();
-  MSQL.OpenConn;
-  sSQL:= 'select PLN_CODIGO as CodMax from INSTRUCTIVOSPRODUCCION where PLN_CODIGO like '+QuotedStr('IB9-%');
 
-  Dst:= TADODataset.Create(nil);
-  try
-    // Obtengo la conexion a la BD
-    Dst.Connection:= MSQL.GetConn;
-    Dst.CommandText:= sSQL;
-    Dst.Open;
-    if Dst.Eof then
-    Begin
-      self.edtCodigodv.Text:= 'IB9-001';
-    end
-      else
-    Begin
-     iUltimoCodMax := -1;
-     while not(Dst.Eof) do
-     Begin
-       CodMax:= Dst.FieldByName('CodMax').AsString;
-       Delete(CodMax,1,4);
-       iCodMax := StrToInt(CodMax);
-       if iCodMax>iUltimoCodMax then
-       Begin
-         iUltimoCodMax := iCodMax;
-       end;
-//       iCodMax := iCodMax+1;
-       Dst.Next;
-     end;
-//     CodMax:= Dst.FieldByName('CodMax').AsString;
-//     Delete(CodMax,1,4);
-//     iCodMax := StrToInt(CodMax);
-//     iCodMax := iCodMax+1;
-     self.edtCodigodv.Text:= 'IB9-0'+IntToStr(iUltimoCodMax+1);
-    end;
-    Dst.Close;
-    MSQL.CloseConn;
-  finally
-    Dst.Free;
-  end;
-end;
-procedure TInstructivosMaterialesAltaFrm.FormShow(Sender: TObject);
-begin
-{  if self.PantallaLockeada(SCR_INSTRUCTIVOSPROD_ALTA) then
-  begin
-    self.LockScreen;
-  end
-  else
-  begin
-    TSistema.GetInstance.LockScreen(SCR_INSTRUCTIVOSPROD_ALTA,SCR_INSTRUCTIVOSPROD_ALTA);
-    self.FLocked:= False;
-  end;}
-  self.GenerarCodigo;
-end;
-
-procedure TInstructivosMaterialesAltaFrm.btnConfirmardvClick(Sender: TObject);
-var
- sSQL:string;
- UsuarioAlta:string;
- Varios: TDVarios;
-begin
-  Varios:= TDVarios.Create;
-  Varios.CodigoDV:= self.edtCodigodv.Text;
-  UsuarioAlta:= TSistema.GetInstance.GetUsuario.Logon;
-
-  sSQL:= 'insert into INSTRUCTIVOSPRODUCCION (PLN_CODIGO,PLN_DESCRIPCION,PLN_ESTADO,PLN_UBICACION,PLN_FECHA,PLN_USUARIO_ALTA)'+
-         'VALUES ('+QuotedStr(self.edtCodigodv.Text)+','+QuotedStr(self.edtDescripciondv.Text)+','+QuotedStr('PA')+','+QuotedStr(self.edtUbicaciondv.Text)+','+QuotedStr(DateToStr(Date))+','+QuotedStr(UsuarioAlta)+')';
-
-  TMotorSQL.GetInstance.OpenConn;
-
-  TMotorSQL.GetInstance.ExecuteSQL(sSQL);
-  ShowMessage('El Documento ' +  Varios.CodigoDV + ' se dio de alta satisfactoriamente');
-
-  if TMotorSQL.GetInstance.GetStatus = 0 then
-  begin
-    TMotorSQL.GetInstance.Commit;
-  end
-  else
-  Begin
-    TMotorSQL.GetInstance.Rollback;
-  end;
-    sSQL:= 'insert into DOCUMENTOSVARIOS  (PLN_CODIGO,PLN_DESCRIPCION,PLN_ESTADO,PLN_UBICACION,PLN_FECHA,PLN_USUARIO_ALTA,PLN_NRO_REV)'+
-           'VALUES ('+ QuotedStr(SELF.edtCodigodv.Text)+','+QuotedStr(SELF.edtDescripciondv.Text)+','+QuotedStr('PA')+','+QuotedStr(SELF.edtUbicaciondv.Text)+','+QuotedStr(DateToStr(Date))+','+QuotedStr(UsuarioAlta)+','+QuotedStr('0')+')';
-    TMotorSql.GetInstance.ExecuteSQL(sSQL);
-    if TMotorSql.GetInstance.GetStatus = 0 then
-    begin
-      TMotorSQL.GetInstance.Commit;
-    end
-    else
-    begin
-      TMotorSQL.GetInstance.Rollback;
-    end;
-      TMotorSQL.GetInstance.CloseConn;
-
-     self.edtCodigodv.Text:= '';
-     self.edtDescripciondv.Text:= '';
-     self.edtUbicaciondv.Text:= '';
-     self.GenerarCodigo;
- end;
 procedure TInstructivosMaterialesAltaFrm.btnDirdvClick(Sender: TObject);
 var
   sDir: string;
@@ -217,24 +116,56 @@ begin
   if sDir <> '' then
      self.edtUbicaciondv.Text:= sDir;
 end;
+
+procedure TInstructivosMaterialesAltaFrm.GenerarCodigo;
+var
+  I: TInstructivo;
+begin
+  I:= TInstructivo.Create;
+  if TSistema.GetInstance.InstructivoDB.GenerarInstructivo(I) then
+  begin
+    lblCodigodv.Enabled:= True;
+    lblDescripciondv.Enabled:= True;
+    lblUbicaciondv.Enabled:= True;
+    edtCodigodv.Enabled:= True;
+    edtDescripciondv.Enabled:= True;
+    edtUbicaciondv.Enabled:= True;
+    btnDirdv.Enabled:= True;
+    btnConfirmardv.Enabled:= True;
+    btnLimpiardv.Enabled:= True;
+
+    edtCodigodv.Text:= I.Codigo;
+    edtDescripciondv.Text:= '';
+    edtUbicaciondv.Text:= '';
+    edtDescripciondv.SetFocus;
+  end
+  else
+  begin
+    ShowMessage('Se detectó un problema, por favor vuelva a intentar de dar de alta el nuevo Instructivo de Producción ingresando nuevamente a la pantalla');
+    btnVolverdv.Click;
+  end;
+
+  I.Free;
+end;
+
 procedure TInstructivosMaterialesAltaFrm.edtDescripciondvEnter(Sender: TObject);
 begin
-  self.StatusBar1.SimpleText:= 'Ingrese una breve descripción del Documento';
+  self.StatusBar1.SimpleText:= 'Ingrese una breve descripción del Instructivo de Producción';
 end;
 
 procedure TInstructivosMaterialesAltaFrm.edtUbicaciondvEnter(Sender: TObject);
 begin
-  self.StatusBar1.SimpleText:= 'Ingrese la ubicación del archivo con el Documento';
+  self.StatusBar1.SimpleText:= 'Ingrese la ubicación del archivo con el Instructivo de Producción';
 end;
 
 procedure TInstructivosMaterialesAltaFrm.btnDirdvEnter(Sender: TObject);
 begin
-  self.StatusBar1.SimpleText:= 'Seleccione la carpeta donde se encuentra el Documento';
+  self.StatusBar1.SimpleText:= 'Seleccione la carpeta donde se encuentra el Instructivo de Producción';
 end;
 
 procedure TInstructivosMaterialesAltaFrm.btnConfirmardvEnter(Sender: TObject);
 begin
-  self.StatusBar1.SimpleText:= 'Da de Alta el Documento en la base de datos';
+  self.StatusBar1.SimpleText:= 'Da de Alta el Instructivo de Producción en la base de datos';
 end;
 
 procedure TInstructivosMaterialesAltaFrm.btnLimpiardvEnter(Sender: TObject);
@@ -245,6 +176,76 @@ end;
 procedure TInstructivosMaterialesAltaFrm.btnVolverdvEnter(Sender: TObject);
 begin
   self.StatusBar1.SimpleText:= 'Regresa a la pantalla anterior';
+end;
+
+procedure TInstructivosMaterialesAltaFrm.btnConfirmardvClick(
+  Sender: TObject);
+var
+  Instructivo: TInstructivo;
+  CodRet: Integer;
+
+begin
+  if MessageDlg('¿ Esta seguro que desea dar de alta el Instructivo de Producción ?', mtConfirmation, mbOKCancel, 0) = mrOK then
+  begin
+    Instructivo:= TInstructivo.Create;
+
+    with Instructivo do
+    begin
+      Codigo:= edtCodigodv.Text;
+      Descripcion:= edtDescripciondv.Text;
+      Revision:= 0;
+      Edicion:= 0;
+      Fecha:= DateToStr(Date);
+      Estado:= PLN_EST_PEND_APR;
+      UsuarioAlta:= TSistema.GetInstance.GetUsuario.Logon;
+      UsuarioAprobacion:= '';
+      FechaAprobacion:= '';
+      UsuarioRecepcion:= '';
+      FechaRecepcion:= '';
+      Ubicacion:= edtUbicaciondv.Text;
+      Superado:= 'NS';
+      UsuarioCreacion:= TSistema.GetInstance.GetUsuario.Logon;
+      FechaCreacion:= DateToStr(Date);
+      UsuarioModif:= '';
+      FechaModif:= '';
+
+    end;
+    CodRet:= TSistema.GetInstance.InstructivoDB.Alta(Instructivo,TAB_INSTRUCTIVO,'NS');
+    if CodRet = PLN_ALTA_OK then
+    begin
+      ShowMessage('El Instructivo de Producción ' + Instructivo.Codigo + ' se dió de alta satisfactoriamente');
+      Instructivo.Free;
+      btnLimpiardv.Click;
+
+      if MessageDlg('¿ Desea dar de alta otro Instructivo de Producción ?', mtConfirmation, mbOKCancel, 0) = mrOK then
+        GenerarCodigo
+      else
+        btnVolverdv.Click;
+    end
+    else
+      ShowMessage('El Instructivo de Producción ' + Instructivo.Codigo + ' no se pudo dar de alta');
+  end;
+end;
+
+procedure TInstructivosMaterialesAltaFrm.FormShow(Sender: TObject);
+begin
+ if PantallaLockeada(SCR_PLANO_ALTA) then
+  begin
+    LockScreen;
+  end
+  else
+  begin
+    TSistema.GetInstance.LockScreen(SCR_INSTRUCTIVOSPROD_ALTA, SCR_INSTRUCTIVOSPROD_ALTA);
+    FLocked:= False;
+    GenerarCodigo;
+  end;
+
+end;
+
+procedure TInstructivosMaterialesAltaFrm.FormClose(Sender: TObject;
+  var Action: TCloseAction);
+begin
+  btnVolverdv.Click;
 end;
 
 end.

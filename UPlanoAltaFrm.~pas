@@ -125,6 +125,7 @@ begin
       UsuarioRecepcion:= '';
       FechaRecepcion:= '';
       Ubicacion:= edtUbicacion.Text;
+      Superado:= 'NS';
       UsuarioCreacion:= TSistema.GetInstance.GetUsuario.Logon;
       FechaCreacion:= DateToStr(Date);
       UsuarioModif:= '';

@@ -1,6 +1,6 @@
 object PlanoAltaFrm: TPlanoAltaFrm
-  Left = 364
-  Top = 316
+  Left = 626
+  Top = 306
   BorderIcons = [biSystemMenu]
   BorderStyle = bsSingle
   Caption = 'Alta de Plano'

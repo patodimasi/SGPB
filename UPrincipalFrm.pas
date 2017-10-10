@@ -743,8 +743,11 @@ begin
 end;
 end;
 end;
+
 procedure TPrincipalFrm.Alta4Click(Sender: TObject);
 begin
+  Enabled:= False;
+  InstructivosMaterialesAltaFrm.MainForm:= Self;
   InstructivosMaterialesAltaFrm.Show;
 end;
 
