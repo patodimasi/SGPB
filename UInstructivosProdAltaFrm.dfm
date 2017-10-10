@@ -2046,6 +2046,10 @@ object InstructivosMaterialesAltaFrm: TInstructivosMaterialesAltaFrm
     Top = 149
     Width = 462
     Height = 19
+    BiDiMode = bdRightToLeftReadingOnly
     Panels = <>
+    ParentBiDiMode = False
+    SimplePanel = True
+    SizeGrip = False
   end
 end

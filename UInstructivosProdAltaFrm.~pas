@@ -160,12 +160,12 @@ end;
 
 procedure TInstructivosMaterialesAltaFrm.btnDirdvEnter(Sender: TObject);
 begin
-  self.StatusBar1.SimpleText:= 'Seleccione la carpeta donde se encuentra el Documento';
+  self.StatusBar1.SimpleText:= 'Seleccione la carpeta donde se encuentra el Instructivo de Producción';
 end;
 
 procedure TInstructivosMaterialesAltaFrm.btnConfirmardvEnter(Sender: TObject);
 begin
-  self.StatusBar1.SimpleText:= 'Da de Alta el Documento en la base de datos';
+  self.StatusBar1.SimpleText:= 'Da de Alta el Instructivo de Producción en la base de datos';
 end;
 
 procedure TInstructivosMaterialesAltaFrm.btnLimpiardvEnter(Sender: TObject);
