@@ -4,10 +4,10 @@ interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls, ComCtrls, DB, ADODB, UDVarios, USistema, UMotorSql,UUtiles, ShlObj;
+  Dialogs, ComCtrls, StdCtrls, UOperacion, UPantallaFrm, DB, ADODB;
 
 type
-  TInstructivosProdAprobarFrm = class(TForm)
+  TInstructivosProdAprobarFrm = class(TPantallaFrm)
     lblCodigo: TLabel;
     edtCodigo: TEdit;
     btnBuscar: TButton;
@@ -34,19 +34,59 @@ type
     procedure btnConfirmarEnter(Sender: TObject);
     procedure btnLimpiarEnter(Sender: TObject);
     procedure btnVolverEnter(Sender: TObject);
+    procedure FormClose(Sender: TObject; var Action: TCloseAction);
+    procedure FormShow(Sender: TObject);
 
-  private
-    { Private declarations }
-  public
-    { Public declarations }
+  protected
+    FOperacion: TOperacion;
+    procedure LockScreen;
+    procedure UnLockScreen;
+
+  published
+    property Operacion: TOperacion read FOperacion write FOperacion;
+
   end;
 
 var
   InstructivosProdAprobarFrm: TInstructivosProdAprobarFrm;
 
 implementation
+uses
+  UInstructivo, USistema, UAprobar, URecibir, UModificacion, UInstructivoDB, UUtiles, shlobj;
 
 {$R *.dfm}
+
+procedure TInstructivosProdAprobarFrm.LockScreen;
+begin
+  lblCodigo.Enabled:= False;
+  edtCodigo.Enabled:= False;
+  edtCodigo.Text:= '';
+  lblDescripcion.Enabled:= False;
+  edtDescripcion.Enabled:= False;
+  edtDescripcion.Text:= '';
+  lblUbicacion.Enabled:= False;
+  edtUbicacion.Enabled:= False;
+  edtUbicacion.Text:= '';
+  btnDir.Enabled:= False;
+  btnBuscar.Visible:= False;
+  btnConfirmar.Visible:= False;
+  btnLimpiar.Visible:= False;
+  btnVolver.SetFocus;
+end;
+
+procedure TInstructivosProdAprobarFrm.UnLockScreen;
+begin
+  lblCodigo.Enabled:= True;
+  edtCodigo.Enabled:= True;
+  lblDescripcion.Enabled:= True;
+  edtDescripcion.Enabled:= True;
+  lblUbicacion.Enabled:= True;
+  edtUbicacion.Enabled:= True;
+  btnDir.Enabled:= True;
+  btnBuscar.Visible:= True;
+  btnConfirmar.Visible:= True;
+  btnLimpiar.Visible:= True;
+end;
 
 procedure TInstructivosProdAprobarFrm.btnLimpiarClick(Sender: TObject);
 begin
@@ -66,122 +106,154 @@ end;
 
 procedure TInstructivosProdAprobarFrm.btnBuscarClick(Sender: TObject);
 var
- sSQL: string;
- Varios: TDVarios;
+  Instructivo: TInstructivo;
+  Ret: Boolean;
+
 begin
-  if self.edtCodigo.Text = '' then
+  Ret:= False;
+  if edtCodigo.Text = '' then
   begin
-    self.edtCodigo.Color:= clRed;
-    showMessage('Debe ingresar el código correspondiente al Documento que desea Aprobar');
-    self.edtCodigo.Color:= clWindow;
-    self.edtCodigo.SetFocus;
+    edtCodigo.Color:= clYellow;
+    if Operacion is TAprobar then
+      ShowMessage('Debe ingresar el código correspondiente al Instructivo de Producción que desea aprobar')
+    else if Operacion is TRecibir then
+      ShowMessage('Debe ingresar el código correspondiente al Instructivo de Producción que desea recibir')
+    else if Operacion is TModificacion then
+      ShowMessage('Debe ingresar el código correspondiente al Instructivo de Producción que desea modificar');
+
+    edtCodigo.Color:= clWindow;
+    edtCodigo.SetFocus;
   end
   else
   begin
-    //self.edtCodigol.Text:= UpperCase(self.edtCodigol.Text);
-    self.edtCodigo.Text:= UpperCase(self.edtCodigo.Text);
-    Varios:= TDVarios.Create;
-    Varios.CodigoDV:= self.edtCodigo.Text;
+    edtCodigo.Text:= UpperCase(edtCodigo.Text);
+    Instructivo:= TInstructivo.Create;
+    Instructivo.Codigo:= edtCodigo.Text;
 
-    self.ADODataSet1.Close;
-    self.ADODataSet1.Connection:= TMotorSql.getInstance.GetConn;
-    TMotorSql.GetInstance.OpenConn;
-
-    sSQL:= 'select PLN_CODIGO ' +
-           ',PLN_DESCRIPCION ' +
-           ',PLN_ESTADO ' +
-           ',PLN_UBICACION ' +
-           'from INSTRUCTIVOSPRODUCCION ' +
-           'where PLN_CODIGO = ' + QuotedStr(SELF.edtCodigo.Text) +
-           ' and PLN_ESTADO = ''PA''';
-
-    self.ADODataSet1.CommandText:= sSQL;
-    self.ADODataSet1.Open;
-
-    if self.ADODataSet1.Eof then
+    if Operacion is TAprobar then
+      Ret:= TSistema.GetInstance.InstructivoDB.GetInstructivo(Instructivo,PLN_EST_PEND_APR)
+    else if Operacion is TRecibir then
+      Ret:= TSistema.GetInstance.InstructivoDB.GetInstructivo(Instructivo,PLN_EST_PEND_REC)
+    else if Operacion is TModificacion then
+      Ret:= TSistema.GetInstance.InstructivoDB.GetInstructivo(Instructivo, PLN_EST_TODOS);
+    if Ret then
     begin
-      self.edtCodigo.Color:= clRed;
-      showMessage('El Código que ingresó no corresponde a ningun Documento en la base de datos');
-      self.edtCodigo.Color:= clWindow;
-       self.edtCodigo.SetFocus;
+      edtDescripcion.Text:= Instructivo.Descripcion;
+      edtUbicacion.Text:= Instructivo.Ubicacion;
+      btnConfirmar.Enabled:= True;
+      edtCodigo.Enabled:= False;
+      btnBuscar.Enabled:= False;
+
+      if Operacion is TModificacion then
+      begin
+        edtDescripcion.Enabled:= True;
+        edtDescripcion.TabStop:= True;
+        edtUbicacion.Enabled:= True;
+        edtUbicacion.TabStop:= True;
+        btnDir.Enabled:= True;
+        edtDescripcion.SetFocus;
+      end
+      else
+        btnConfirmar.SetFocus;
     end
     else
     begin
-      self.edtDescripcion.Enabled:= True;
-      self.edtUbicacion.Enabled:= True;
-      self.btnConfirmar.Enabled:= True;
-      Varios.CodigoDV:= self.ADODataSet1.fieldbyName('PLN_CODIGO').AsString;
-      Varios.DescripcionDV:= self.ADODataSet1.fieldByName('PLN_DESCRIPCION').AsString;
-      Varios.UbicacionDv:= self.ADODataSet1.fieldByName('PLN_UBICACION').AsString;
+      edtCodigo.Color:= clYellow;
+      if Operacion is TAprobar then
+        ShowMessage('El código que ingresó no corresponde a ningún Instructivo de Producción existente pendiente de aprobación en la base de datos')
+      else if Operacion is TRecibir then
+        ShowMessage('El código que ingresó no corresponde a ningún Instructivo de Producción existente pendiente de recepción en la base de datos')
+      else if Operacion is TModificacion then
+        ShowMessage('El código que ingresó no corresponde a ningún Instructivo de Producción existente en la base de datos');
 
-      self.edtDescripcion.Text:= Varios.DescripcionDV;
-      self.edtUbicacion.Text:= Varios.UbicacionDv;
-      self.ADODataSet1.Open;
-      self.ADODataSet1.Close;
+      edtCodigo.Color:= clWindow;
+      edtCodigo.SetFocus;
     end;
-     self.edtCodigo.Enabled:= True;
-     self.btnConfirmar.Enabled:= True;
-     self.edtDescripcion.Enabled:= False;
-     self.edtUbicacion.Enabled:= False;
-     self.btnBuscar.Enabled:= True;
-     TMotorSql.GetInstance.GetConn;
- end;
+    Instructivo.Free;
+  end;
 end;
+
 procedure TInstructivosProdAprobarFrm.btnVolverClick(Sender: TObject);
 begin
-  self.Close;
+  MainForm.Enabled:= True;
+  MainForm.Show;
+  Hide;
+  MainForm:= nil;
 end;
 
 procedure TInstructivosProdAprobarFrm.btnConfirmarClick(Sender: TObject);
 var
- sSQL: string;
- Varios: TDVarios;
- usuario: string;
+  Instructivo: TInstructivo;
+  CodRet: Integer;
+
 begin
-  Usuario:= TSistema.getInstance.GetUsuario.Logon;
-  Varios:= TDVarios.Create;
-  Varios.CodigoDV:= self.edtCodigo.Text;
+  CodRet:= 0;
 
-  self.ADODataSet1.Close;
-  self.ADODataSet1.Connection:= TMotorSql.GetInstance.GetConn;
-  TMotorSql.GetInstance.OpenConn;
+  if Operacion is TAprobar then
+    CodRet:= MessageDlg('¿ Esta seguro que desea aprobar el Instructivo de Producción ?', mtConfirmation, mbOKCancel, 0)
+  else if Operacion is TRecibir then
+    CodRet:= MessageDlg('¿ Esta seguro que desea recibir el Instructivo de Producción ?', mtConfirmation, mbOKCancel, 0)
+  else if Operacion is TModificacion then
+    CodRet:= MessageDlg('¿ Esta seguro que desea modificar el Instructivo de Producción ?', mtConfirmation, mbOKCancel, 0);
 
-  sSQl:= 'update INSTRUCTIVOSPRODUCCION '+
-         ' set PLN_USUARIO_APR = ' + QuotedStr(usuario) +
-         ', PLN_FECHA_APR = ' + QuotedStr(DateToStr(Date)) +
-         ', PLN_ESTADO = ' +  QuotedStr('PR') +
-         ' where PLN_CODIGO = ' + QuotedStr(SELF.edtCodigo.Text);
-
-  TMotorSql.GetInstance.ExecuteSQL(sSQL);
-  ShowMessage('El Documento ' + Varios.CodigoDV + ' se aprobó satisfactoriamente');
-  if TMotorSQL.GetInstance.GetStatus = 0 then
+  if CodRet = mrOK then
   begin
-    TMotorSQL.GetInstance.Commit;
-  end
-  else
-  Begin
-    TMotorSQL.GetInstance.Rollback;
+    Instructivo:= TInstructivo.Create;
+
+    Instructivo.Codigo:= edtCodigo.Text;
+
+    if Operacion is TAprobar then
+    begin
+      CodRet:= TSistema.GetInstance.InstructivoDB.Aprobar(Instructivo);
+      if CodRet = PLN_APR_OK then
+      begin
+        ShowMessage('El Instructivo de Producción ' + Instructivo.Codigo + ' se aprobó satisfactoriamente');
+        Instructivo.Free;
+        if MessageDlg('¿ Desea aprobar otro Instructivo de Producción ?', mtConfirmation, mbOKCancel, 0) = mrOK then
+
+          btnLimpiar.Click
+        else
+          btnVolver.Click;
+      end
+      else
+        ShowMessage('El Instructivo de Producción ' + Instructivo.Codigo + ' no se pudo aprobar');
+    end
+    else if Operacion is TRecibir then
+    begin
+      CodRet:= TSistema.GetInstance.InstructivoDB.Recibir(Instructivo);
+      if CodRet = PLN_REC_OK then
+      begin
+        ShowMessage('El Instructivo ' + Instructivo.Codigo + ' se recibió satisfactoriamente');
+        Instructivo.Free;
+
+        if MessageDlg('¿ Desea recibir otro Instructivo de Producción ?', mtConfirmation, mbOKCancel, 0) = mrOK then
+          btnLimpiar.Click
+        else
+          btnVolver.Click;
+      end
+      else
+        ShowMessage('El Instructivo de Producción ' + Instructivo.Codigo + ' no se pudo recibir');
+    end
+    else if Operacion is TModificacion then
+    begin
+      Instructivo.Descripcion:= edtDescripcion.Text;
+      Instructivo.Ubicacion:= edtUbicacion.Text;
+      CodRet:= TSistema.GetInstance.InstructivoDB.Modificacion(Instructivo);
+      if CodRet = PLN_MODIF_OK then
+      begin
+        ShowMessage('El Instructivo de Producción ' + Instructivo.Codigo + ' se modificó satisfactoriamente');
+        Instructivo.Free;
+
+        if MessageDlg('¿ Desea modificar otro Instructivo de Producción ?', mtConfirmation, mbOKCancel, 0) = mrOK then
+          btnLimpiar.Click
+        else
+          btnVolver.Click;
+      end
+      else
+        ShowMessage('El Instructivo de Producción ' + Instructivo.Codigo + ' no se pudo modificar');
+    end;
+
   end;
-  sSQL:= 'update DOCUMENTOSVARIOS ' +
-         ' set PLN_USUARIO_APR = ' + QuotedStr(usuario) +
-         ', PLN_FECHA_APR = ' + QuotedStr(DateToStr(Date)) +
-         ', PLN_ESTADO = ' + QuotedStr('PR') +
-         'Where PLN_CODIGO = ' + QuotedStr(SELF.edtCodigo.Text);
-
-  TMotorSql.GetInstance.ExecuteSQL(sSQL);
-  if TMotorSql.GetInstance.GetStatus = 0 then
-  begin
-    TmotorSQl.GetInstance.Commit;
-  end
-  else
-  begin
-    TMotorSql.GetInstance.Rollback;
-  end;
-    self.edtCodigo.Text:= '';
-    self.edtDescripcion.Text:= '';
-    self.edtUbicacion.Text:= '';
-
-    TMotorSql.GetInstance.CloseConn;
 end;
 
 procedure TInstructivosProdAprobarFrm.btnDirClick(Sender: TObject);
@@ -196,7 +268,12 @@ end;
 
 procedure TInstructivosProdAprobarFrm.edtCodigoEnter(Sender: TObject);
 begin
-  self.stbInstructivosProd.SimpleText:= 'Ingrese el código del Documento a Aprobar';
+  if Operacion is TAprobar then
+    stbInstructivosProd.SimpleText:= 'Ingrese el código del Instructivo de Producción'
+  else if Operacion is TRecibir then
+    stbInstructivosProd.SimpleText:= 'Ingrese el código del Instructivo de Producción'
+  else if Operacion is TModificacion then
+    stbInstructivosProd.SimpleText:= 'Ingrese el código del Instructivo de Producción';
 end;
 
 procedure TInstructivosProdAprobarFrm.edtCodigoKeyPress(Sender: TObject;
@@ -208,22 +285,27 @@ end;
 
 procedure TInstructivosProdAprobarFrm.btnBuscarEnter(Sender: TObject);
 begin
-  self.stbInstructivosProd.SimpleText:= 'Busca el código del Documento ingresado en la base de datos';
+  self.stbInstructivosProd.SimpleText:= 'Busca el código del Instructivo de Instructivo de Producción ingresado en la base de datos';
 end;
 
 procedure TInstructivosProdAprobarFrm.edtUbicacionEnter(Sender: TObject);
 begin
-  self.stbInstructivosProd.SimpleText:= 'Ingrese la ubicación del archivo con el Documento';
+  self.stbInstructivosProd.SimpleText:= 'Ingrese la ubicación del Instructivo de Producción';
 end;
 
 procedure TInstructivosProdAprobarFrm.btnDirEnter(Sender: TObject);
 begin
-  self.stbInstructivosProd.SimpleText:= 'Seleccione la carpeta donde se encuentra el Documento';
+  self.stbInstructivosProd.SimpleText:= 'Seleccione la carpeta donde se encuentra el Instructivo de Producción';
 end;
 
 procedure TInstructivosProdAprobarFrm.btnConfirmarEnter(Sender: TObject);
 begin
-  self.stbInstructivosProd.SimpleText:= 'Aprueba el Documento ingresado';
+  if Operacion is TAprobar then
+    stbInstructivosProd.SimpleText:= 'Aprueba el Instructivo de Producción especificado'
+  else if Operacion is TRecibir then
+    stbInstructivosProd.SimpleText:= 'Recibe el Instructivo de Producción especificado'
+  else if Operacion is TModificacion then
+    stbInstructivosProd.SimpleText:= 'Modifica el Instructivo de Producción especificado';
 end;
 
 procedure TInstructivosProdAprobarFrm.btnLimpiarEnter(Sender: TObject);
@@ -234,6 +316,41 @@ end;
 procedure TInstructivosProdAprobarFrm.btnVolverEnter(Sender: TObject);
 begin
   self.stbInstructivosProd.SimpleText:= 'Regresa a la pantalla anterior';
+end;
+
+procedure TInstructivosProdAprobarFrm.FormClose(Sender: TObject;
+  var Action: TCloseAction);
+begin
+   btnVolver.Click;
+end;
+
+procedure TInstructivosProdAprobarFrm.FormShow(Sender: TObject);
+begin
+  edtCodigo.Enabled:= True;
+  edtCodigo.Text:= '';
+  btnBuscar.Enabled:= True;
+  edtDescripcion.Enabled:= False;
+  edtDescripcion.Text:= '';
+  edtDescripcion.TabStop:= False;
+  btnDir.Enabled:= False;
+  btnConfirmar.Enabled:= False;
+  edtUbicacion.Enabled:= False;
+  edtUbicacion.Text:= '';
+  edtUbicacion.TabStop:= False;
+  edtCodigo.SetFocus;
+
+  if Operacion is TAprobar then
+  begin
+    InstructivosProdAprobarFrm.Caption:= 'Aprobar Instructivo de Producción';
+  end
+  else if Operacion is TRecibir then
+  begin
+    InstructivosProdAprobarFrm.Caption:= 'Recibir Instructivo de Producción';
+  end
+  else if Operacion is TModificacion then
+  begin
+    InstructivosProdAprobarFrm.Caption:= 'Modificar Instructivo de Producción';
+  end;
 end;
 
 end.

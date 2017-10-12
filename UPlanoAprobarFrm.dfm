@@ -1,6 +1,6 @@
 object PlanoAprobarFrm: TPlanoAprobarFrm
-  Left = 516
-  Top = 481
+  Left = 580
+  Top = 352
   BorderIcons = [biSystemMenu]
   BorderStyle = bsSingle
   Caption = 'Aprobar Plano'

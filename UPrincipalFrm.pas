@@ -609,11 +609,10 @@ end;
 
 procedure TPrincipalFrm.mmiBajaMClick(Sender: TObject);
 begin
-//  self.Enabled:= False;
   ManualesBajaFrm.MainForm:= self;
   ManualesBajaFrm.Show;
-
 end;
+
 procedure TPrincipalFrm.mmiModificacionMClick(Sender: TObject);
 begin
   Enabled:= False;
@@ -753,20 +752,33 @@ end;
 
 procedure TPrincipalFrm.Modificacin1Click(Sender: TObject);
 begin
-  InstructivosProduccionModificarFrm.Show;
+  Enabled:= False;
+  InstructivosProdAprobarFrm.Operacion:= TModificacion.Create;
+  InstructivosProdAprobarFrm.MainForm:= self;
+  InstructivosProdAprobarFrm.Show;
 end;
+
 procedure TPrincipalFrm.Baja4Click(Sender: TObject);
 begin
   InstructivosProdBajaFrm.Show;
 end;
+
 procedure TPrincipalFrm.Aprobar1Click(Sender: TObject);
 begin
+  Enabled:= False;
+  InstructivosProdAprobarFrm.Operacion:= TAprobar.Create;
+  InstructivosProdAprobarFrm.MainForm:= Self;
   InstructivosProdAprobarFrm.Show;
 end;
+
 procedure TPrincipalFrm.Recibir1Click(Sender: TObject);
 begin
-  RecibirInstructivosProdFrm.Show;
+  Enabled:= False;
+  InstructivosProdAprobarFrm.Operacion:= TRecibir.Create;
+  InstructivosProdAprobarFrm.MainForm:= Self;
+  InstructivosProdAprobarFrm.Show;
 end;
+
 procedure TPrincipalFrm.Superar1Click(Sender: TObject);
 begin
   SuperarInstructivosProdFrm.Show;
@@ -789,9 +801,7 @@ end;
 
 procedure TPrincipalFrm.Aprobar2Click(Sender: TObject);
 begin
-  //Enabled:= False;
   SubinstructivosProdAprobarFrm.Operacion:= TAprobar.Create;
- // SubinstructivosProdAprobarFrm.MainForm:= Self;
   SubinstructivosProdAprobarFrm.Show;
 end;
 

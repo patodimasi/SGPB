@@ -1,6 +1,6 @@
 object InstructivosProdAprobarFrm: TInstructivosProdAprobarFrm
-  Left = 380
-  Top = 303
+  Left = 673
+  Top = 310
   BorderStyle = bsSingle
   Caption = 'Aprobar Instructivos de Producci'#243'n'
   ClientHeight = 168
@@ -1935,6 +1935,8 @@ object InstructivosProdAprobarFrm: TInstructivosProdAprobarFrm
     9C4100009C4100009C4100009C4100009C4100009C41}
   OldCreateOrder = False
   Position = poScreenCenter
+  OnClose = FormClose
+  OnShow = FormShow
   PixelsPerInch = 96
   TextHeight = 13
   object lblCodigo: TLabel
@@ -2056,7 +2058,11 @@ object InstructivosProdAprobarFrm: TInstructivosProdAprobarFrm
     Top = 149
     Width = 462
     Height = 19
+    BiDiMode = bdRightToLeftReadingOnly
     Panels = <>
+    ParentBiDiMode = False
+    SimplePanel = True
+    SizeGrip = False
   end
   object ADODataSet1: TADODataSet
     ConnectionString = 

@@ -2208,7 +2208,6 @@ object PrincipalFrm: TPrincipalFrm
           end
           object Modificacin1: TMenuItem
             Caption = 'Modificaci'#243'n'
-            Enabled = False
             ImageIndex = 44
             OnClick = Modificacin1Click
           end
@@ -2306,13 +2305,11 @@ object PrincipalFrm: TPrincipalFrm
           Caption = 'Instructivos de Producci'#243'n'
           object Aprobar1: TMenuItem
             Caption = 'Aprobar'
-            Enabled = False
             ImageIndex = 57
             OnClick = Aprobar1Click
           end
           object Recibir1: TMenuItem
             Caption = 'Recibir'
-            Enabled = False
             ImageIndex = 56
             OnClick = Recibir1Click
           end
