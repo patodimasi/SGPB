@@ -778,6 +778,8 @@ end;
 
 procedure TPrincipalFrm.Superar1Click(Sender: TObject);
 begin
+  Enabled:= False;
+  SuperarInstructivosProdFrm.MainForm:= Self;
   SuperarInstructivosProdFrm.Show;
 end;
 
@@ -785,6 +787,7 @@ procedure TPrincipalFrm.Alta5Click(Sender: TObject);
 begin
   SubinstructivosProdAltaFrm.Show;
 end;
+
 procedure TPrincipalFrm.Baja5Click(Sender: TObject);
 begin
   SubinstructivosProdBajaFrm.Show;

@@ -43,12 +43,21 @@ type
     Edit2: TEdit;
     procedure btnVolverClick(Sender: TObject);
     procedure btnLimpiarClick(Sender: TObject);
+    procedure btnVolverEnter(Sender: TObject);
+    procedure FormClose(Sender: TObject; var Action: TCloseAction);
+    procedure btnBuscarClick(Sender: TObject);
+    procedure FormShow(Sender: TObject);
+    procedure btnConfirmarClick(Sender: TObject);
+    procedure edtCodigoKeyPress(Sender: TObject; var Key: Char);
+    procedure edtDescripcion2Enter(Sender: TObject);
+    procedure edtCodigoEnter(Sender: TObject);
+    procedure btnBuscarEnter(Sender: TObject);
 
     private
       FInstructivo: TInstructivo;
       procedure Limpiar;
       procedure LockScreen;
-     //procedure UnLockScreen;
+      procedure UnLockScreen;
    end;
 
 var
@@ -59,6 +68,29 @@ uses
   USistema, UInstructivoDB;
 
 {$R *.dfm}
+
+procedure TSuperarInstructivosProdFrm.UnLockScreen;
+begin
+  lblCodigo.Enabled:= True;
+  edtCodigo.Enabled:= True;
+  lblDescripcion.Enabled:= True;
+  lblDescripcion2.Enabled:= True;
+  edtDescripcion2.Enabled:= True;
+  lblNroRev.Enabled:= True;
+  lblNroRev2.Enabled:= True;
+  lblNroEdic.Enabled:= True;
+  lblFechaAlta.Enabled:= True;
+  lblFechaApr.Enabled:= True;
+  //lblFechaSup.Enabled:= True;
+  lblUAlta.Enabled:= True;
+  lblUApr.Enabled:= True;
+ // lblUSup.Enabled:= True;
+  gbNueva.Enabled:= True;
+  lblFechaSup2.Enabled:= True;
+  btnBuscar.Visible:= True;
+  btnConfirmar.Visible:= True;
+  btnLimpiar.Visible:= True;
+end;
 
 procedure TSuperarInstructivosProdFrm.LockScreen;
 begin
@@ -117,7 +149,7 @@ end;
 
 procedure TSuperarInstructivosProdFrm.btnVolverClick(Sender: TObject);
 begin
- { if not FLocked then
+  if not FLocked then
   begin
     TSistema.GetInstance.UnLockScreen(SCR_INSTRUCTIVOSPROD_RECIBIR);
     TSistema.GetInstance.UnLockScreen(SCR_INSTRUCTIVOSPROD_SUPERAR);
@@ -138,12 +170,173 @@ begin
   MainForm.Show;
   Hide;
   MainForm:= nil;
-  }
+    
 end;
 
 procedure TSuperarInstructivosProdFrm.btnLimpiarClick(Sender: TObject);
 begin
   self.Limpiar;
+end;
+
+procedure TSuperarInstructivosProdFrm.btnVolverEnter(Sender: TObject);
+begin
+  stbInstructivosProd.SimpleText:= 'Regresa a la pantalla anterior';
+end;
+
+procedure TSuperarInstructivosProdFrm.FormClose(Sender: TObject;
+  var Action: TCloseAction);
+begin
+  self.btnVolver.Click;
+end;
+
+procedure TSuperarInstructivosProdFrm.btnBuscarClick(Sender: TObject);
+begin
+  if edtCodigo.Text = '' then
+  begin
+    edtCodigo.Color:= clYellow;
+    ShowMessage('Debe ingresar el código correspondiente al Instructivo de Producción que desea superar');
+    edtCodigo.Color:= clWindow;
+    edtCodigo.SetFocus;
+  end
+  else
+  begin
+    edtCodigo.Text:= UpperCase(edtCodigo.Text);
+
+    FInstructivo:= TInstructivo.Create;
+    FInstructivo.Codigo:= edtCodigo.Text;
+
+    if TSistema.GetInstance.InstructivoDB.GetInstructivo(FInstructivo, PLN_EST_SUPERABLE) then
+    begin
+      edtDescripcion.Text:= FInstructivo.Descripcion;
+      edtNroRev.Text:= IntToStr(FInstructivo.Revision);
+      edtNroEdic.Text:= IntToStr(FInstructivo.Edicion);
+      edtFechaAlta.Text:= FInstructivo.Fecha;
+      edtUAlta.Text:= FInstructivo.UsuarioAlta;
+      edtFechaApr.Text:= FInstructivo.FechaAprobacion;
+      edtUApr.Text:= FInstructivo.UsuarioAprobacion;
+      edtNroRev2.Text:= IntToStr(FInstructivo.Revision + 1);
+      edtFechaSup2.Text:= DateToStr(Date);
+      btnConfirmar.Enabled:= True;
+      edtCodigo.Enabled:= False;
+      btnBuscar.Enabled:= False;
+      self.edtFechaAlta.Enabled:= False;
+      self.edtUAlta.Enabled:= False;
+      self.edtNroRev.Enabled:= False;
+      self.edtNroEdic.Enabled:= False;
+      self.edtDescripcion.Enabled:= false;
+      self.edtFechaApr.Enabled:= false;
+      self.edtUApr.Enabled:= false;
+      self.Edit1.Enabled:= false;
+      self.Edit2.Enabled:= false;
+      edtDescripcion2.Enabled:= True;
+      edtDescripcion2.TabStop:= True;
+      edtDescripcion2.Text:= edtDescripcion.Text;
+      edtDescripcion2.SetFocus;
+      self.Edit1.Text:= FInstructivo.FechaRecepcion;
+      self.Edit2.Text:= FInstructivo.UsuarioRecepcion;
+      self.Edit1.Enabled:= False;
+      self.Edit2.Enabled:= False;
+
+    end
+    else
+    begin
+      edtCodigo.Color:= clYellow;
+      ShowMessage('El código que ingresó no corresponde a un Instructivo de Producción en condiciones de ser superado');
+      edtCodigo.Color:= clWindow;
+      edtCodigo.SetFocus;
+    end;
+  end;
+
+end;
+
+procedure TSuperarInstructivosProdFrm.FormShow(Sender: TObject);
+var
+  L: Boolean;
+begin
+  L:= False;
+  if PantallaLockeada(SCR_INSTRUCTIVOSPROD_RECIBIR) then
+    L:= True
+  else if PantallaLockeada(SCR_INSTRUCTIVOSPROD_SUPERAR) then
+    L:= True
+  else if PantallaLockeada(SCR_INSTRUCTIVOSPROD_BAJA) then
+    L:= True
+  else if PantallaLockeada(SCR_INSTRUCTIVOSPROD_MODIF) then
+    L:= True;
+
+  if L then
+    LockScreen
+  else
+  begin
+    FLocked:= False;
+    Limpiar;
+  end;
+end;
+
+procedure TSuperarInstructivosProdFrm.btnConfirmarClick(Sender: TObject);
+var
+  InstructivoNuevo: TInstructivo;
+  CodRet: Integer;
+  usuarionuevo: string;
+begin
+  if MessageDlg('¿ Esta seguro que desea superar el Instructivo de Producción ?', mtConfirmation, mbOKCancel, 0) = mrOK then
+  begin
+    FInstructivo.UsuarioCreacion:= TSistema.GetInstance.GetUsuario.Logon;
+    FInstructivo.FechaCreacion:= DateToStr(Date);
+    FInstructivo.UsuarioModif:= '';
+    FInstructivo.FechaModif:= '';
+    usuarionuevo:= TSistema.getInstance.getUsuario.Logon;
+
+    InstructivoNuevo:= TInstructivo.Create;
+    InstructivoNuevo.Copiar(FInstructivo);
+    with InstructivoNuevo do
+    begin
+      Descripcion:= edtDescripcion2.Text;
+      Revision:= StrToInt(edtNroRev2.Text);
+      Fecha:= DateToStr(Date);
+      Estado:= PLN_EST_PEND_APR;
+      UsuarioAprobacion:= '';
+      FechaAprobacion:= '';
+      UsuarioRecepcion:= '';
+      FechaRecepcion:= '';
+      UsuarioAlta:= usuarionuevo;
+    end;
+    CodRet:= TSistema.GetInstance.InstructivoDB.Superar(FInstructivo,InstructivoNuevo);
+    if CodRet = PLN_SUPERAR_OK then
+    begin
+      ShowMessage('El Instructivo de Producción ' + FInstructivo.Codigo + ' se superó satisfactoriamente');
+      InstructivoNuevo.Free;
+
+      if MessageDlg('¿ Desea superar otro Instructivo de Producción ?', mtConfirmation, mbOKCancel, 0) = mrOK then
+        btnLimpiar.Click
+      else
+        btnVolver.Click;
+    end
+    else
+      ShowMessage('El Instructivo de Producción ' + FInstructivo.Codigo + ' no se pudo superar');
+  end;
+end;
+
+procedure TSuperarInstructivosProdFrm.edtCodigoKeyPress(Sender: TObject;
+  var Key: Char);
+begin
+  if Ord(Key) = 13 then
+    btnBuscar.Click;
+end;
+
+procedure TSuperarInstructivosProdFrm.edtDescripcion2Enter(
+  Sender: TObject);
+begin
+  stbInstructivosProd.SimpleText:= 'Ingrese la descripción de la nueva revisión del Instructivo de Producción';
+end;
+
+procedure TSuperarInstructivosProdFrm.edtCodigoEnter(Sender: TObject);
+begin
+  stbInstructivosProd.SimpleText:= 'Ingrese el código del Instructivo de Producción a superar';
+end;
+
+procedure TSuperarInstructivosProdFrm.btnBuscarEnter(Sender: TObject);
+begin
+   stbInstructivosProd.SimpleText:= 'Busca el código del Instructivo de Producción a superar';
 end;
 
 end.

@@ -1,6 +1,6 @@
 object SuperarInstructivosProdFrm: TSuperarInstructivosProdFrm
-  Left = 390
-  Top = 353
+  Left = 744
+  Top = 189
   BorderStyle = bsSingle
   Caption = 'Superar Instructivos de Producci'#243'n'
   ClientHeight = 328
@@ -1935,6 +1935,8 @@ object SuperarInstructivosProdFrm: TSuperarInstructivosProdFrm
     9C4100009C4100009C4100009C4100009C4100009C41}
   OldCreateOrder = False
   Position = poScreenCenter
+  OnClose = FormClose
+  OnShow = FormShow
   PixelsPerInch = 96
   TextHeight = 13
   object lblCodigo: TLabel
@@ -2043,7 +2045,7 @@ object SuperarInstructivosProdFrm: TSuperarInstructivosProdFrm
   end
   object Label1: TLabel
     Left = 32
-    Top = 144
+    Top = 140
     Width = 67
     Height = 16
     Caption = 'Se Recibi'#243
@@ -2056,7 +2058,7 @@ object SuperarInstructivosProdFrm: TSuperarInstructivosProdFrm
   end
   object Label2: TLabel
     Left = 196
-    Top = 136
+    Top = 140
     Width = 47
     Height = 16
     Caption = 'Usuario'
@@ -2074,6 +2076,8 @@ object SuperarInstructivosProdFrm: TSuperarInstructivosProdFrm
     Height = 21
     CharCase = ecUpperCase
     TabOrder = 0
+    OnEnter = edtCodigoEnter
+    OnKeyPress = edtCodigoKeyPress
   end
   object btnBuscar: TButton
     Left = 176
@@ -2082,6 +2086,8 @@ object SuperarInstructivosProdFrm: TSuperarInstructivosProdFrm
     Height = 21
     Caption = '&Buscar'
     TabOrder = 1
+    OnClick = btnBuscarClick
+    OnEnter = btnBuscarEnter
   end
   object edtNroRev: TEdit
     Left = 104
@@ -2186,6 +2192,7 @@ object SuperarInstructivosProdFrm: TSuperarInstructivosProdFrm
       Width = 361
       Height = 24
       TabOrder = 2
+      OnEnter = edtDescripcion2Enter
     end
   end
   object btnConfirmar: TButton
@@ -2195,6 +2202,7 @@ object SuperarInstructivosProdFrm: TSuperarInstructivosProdFrm
     Height = 25
     Caption = '&Confirmar'
     TabOrder = 10
+    OnClick = btnConfirmarClick
   end
   object btnLimpiar: TButton
     Left = 336
@@ -2213,6 +2221,7 @@ object SuperarInstructivosProdFrm: TSuperarInstructivosProdFrm
     Caption = '&Volver'
     TabOrder = 12
     OnClick = btnVolverClick
+    OnEnter = btnVolverEnter
   end
   object stbInstructivosProd: TStatusBar
     Left = 0

@@ -38,11 +38,62 @@ type
    function GetInstructivo(I: TInstructivo; E: TEstadoInstructivo): Boolean;
    function Recibir(I: TInstructivo): Integer;
    function Modificacion(I: TInstructivo): Integer;
+   function Superar(IH: TInstructivo; INuevo: TInstructivo): Integer;
+   function Baja(I: TInstructivo; Tabla: string): Integer;
+
   end;
 
 implementation
 uses
   SysUtils, ADODB, USistema, Classes, StrUtils;
+
+function TInstructivoDB.Baja(I: TInstructivo; Tabla: string): Integer;
+var
+  sSQL: string;
+  MSQL: TMotorSQL;
+
+begin
+  Result:= PLN_BAJA_FAILED;
+
+  // Establezco una conexion con la BD
+  MSQL:= TMotorSQL.GetInstance();
+  MSQL.OpenConn;
+
+  // Si se pudo realizar...
+  if MSQL.GetStatus = 0 then
+  begin
+    sSQL:= 'delete from ' + Tabla + ' where PLN_CODIGO = ' + Formatear(I.Codigo)+ ' and PLN_NRO_REV = ' + IntToStr(I.Revision) +
+           ' and PLN_DESCRIPCION = ' + Formatear(I.Descripcion);
+
+    try
+      MSQL.ExecuteSQL(sSQL);
+      if MSQL.GetStatus = 0 then
+      begin
+        MSQL.Commit;
+        if MSQL.GetStatus = 0 then
+          Result:= PLN_BAJA_OK;
+
+        MSQL.CloseConn;
+      end;
+    except
+      Result:= PLN_BAJA_FAILED;
+    end;
+  end;
+end;
+
+function TInstructivoDB.Superar(IH: TInstructivo; INuevo: TInstructivo): Integer;
+var
+  CodRet: Integer;
+begin
+  CodRet:= PLN_SUPERAR_FAILED;
+  if Alta(IH, TAB_HISTORICO_INSTRUCTIVO,'S') = PLN_ALTA_OK then
+    if Baja(IH, TAB_INSTRUCTIVO) = PLN_BAJA_OK then
+      if Alta(INuevo, TAB_INSTRUCTIVO,'NS') = PLN_ALTA_OK then
+        CodRet:= PLN_SUPERAR_OK;
+
+  Result:= CodRet;
+
+end;
 
 function TInstructivoDB.Modificacion(I: TInstructivo): Integer;
 var

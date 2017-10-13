@@ -38,11 +38,28 @@ type
    function GetInstructivo(I: TInstructivo; E: TEstadoInstructivo): Boolean;
    function Recibir(I: TInstructivo): Integer;
    function Modificacion(I: TInstructivo): Integer;
+   function Superar(IH: TInstructivo; INuevo: TInstructivo): Integer;
+   function Baja(I: TInstructivo; Tabla: string): Integer;
+
   end;
 
 implementation
 uses
   SysUtils, ADODB, USistema, Classes, StrUtils;
+
+function TInstructivoDB.Superar(IH: TInstructivo; INuevo: TInstructivo): Integer;
+var
+  CodRet: Integer;
+begin
+  CodRet:= PLN_SUPERAR_FAILED;
+  if Alta(IH, TAB_HISTORICO_INSTRUCTIVO,'S') = PLN_ALTA_OK then
+    if Baja(IH, TAB_INSTRUCTIVO) = PLN_BAJA_OK then
+      if Alta(INuevo, TAB_INSTRUCTIVO,'NS') = PLN_ALTA_OK then
+        CodRet:= PLN_SUPERAR_OK;
+
+  Result:= CodRet;
+
+end;
 
 function TInstructivoDB.Modificacion(I: TInstructivo): Integer;
 var
@@ -165,7 +182,7 @@ begin
                   ', USUARIO_MODIF ' +
                   ', FECHA_MODIF ' +
             ' from INSTRUCTIVOSPRODUCCION ' +
-            ' where PLN_CODIGO = ' + Formatear(P.Codigo);
+            ' where PLN_CODIGO = ' + Formatear(I.Codigo);
 
 
     if E = PLN_EST_SUPERABLE then

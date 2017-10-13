@@ -119,7 +119,6 @@ begin
   btnLimpiar.Visible:= True;
 end;
 
-
 procedure TPlanoSuperarFrm.btnVolverClick(Sender: TObject);
 begin
   if not FLocked then

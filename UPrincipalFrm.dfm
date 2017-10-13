@@ -1,6 +1,6 @@
 object PrincipalFrm: TPrincipalFrm
-  Left = 482
-  Top = 203
+  Left = 517
+  Top = 291
   Width = 826
   Height = 573
   Caption = 'Sistema de Gesti'#243'n de Planos BOHERDI ELECTRONICA'
@@ -2298,7 +2298,6 @@ object PrincipalFrm: TPrincipalFrm
           end
           object Superar1: TMenuItem
             Caption = 'Superar'
-            Enabled = False
             ImageIndex = 59
             OnClick = Superar1Click
           end
