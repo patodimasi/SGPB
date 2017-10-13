@@ -1,6 +1,6 @@
 object SubinstructivosProdAprobarFrm: TSubinstructivosProdAprobarFrm
-  Left = 659
-  Top = 280
+  Left = 658
+  Top = 227
   BorderStyle = bsSingle
   Caption = 'Aprobar Subinstructivos Producci'#243'n'
   ClientHeight = 168
@@ -1935,6 +1935,7 @@ object SubinstructivosProdAprobarFrm: TSubinstructivosProdAprobarFrm
     9C4100009C4100009C4100009C4100009C4100009C41}
   OldCreateOrder = False
   Position = poScreenCenter
+  OnClose = FormClose
   OnShow = FormShow
   PixelsPerInch = 96
   TextHeight = 13

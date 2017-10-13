@@ -220,6 +220,14 @@ type
     btnTodosip: TButton;
     btnLimpiarip: TButton;
     btnVolverip: TButton;
+    GroupBox6: TGroupBox;
+    Image13: TImage;
+    Image14: TImage;
+    Image15: TImage;
+    Label25: TLabel;
+    Label26: TLabel;
+    Label27: TLabel;
+    Label28: TLabel;
     procedure btnVolverEnter(Sender: TObject);
     procedure btnVolverClick(Sender: TObject);
     procedure btnVolverlmEnter(Sender: TObject);

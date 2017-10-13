@@ -7,7 +7,7 @@ uses
   Dialogs, ComCtrls, StdCtrls, UOperacion, UPantallaFrm, DB, ADODB;
 
 type
-  TSubinstructivosProdAprobarFrm = class(TForm)
+  TSubinstructivosProdAprobarFrm = class(TPantallaFrm)
     lblCodigo: TLabel;
     edtCodigo: TEdit;
     btnBuscar: TButton;
@@ -29,12 +29,13 @@ type
     procedure FormShow(Sender: TObject);
     procedure btnConfirmarClick(Sender: TObject);
     procedure edtCodigoKeyPress(Sender: TObject; var Key: Char);
+    procedure FormClose(Sender: TObject; var Action: TCloseAction);
     //procedure btnConfirmarClick(Sender: TObject);
     
    protected
     FOperacion: TOperacion;
-  //  procedure LockScreen;
-   // procedure UnLockScreen;
+    procedure LockScreen;
+    procedure UnLockScreen;
 
   published
     property Operacion: TOperacion read FOperacion write FOperacion;
@@ -50,9 +51,44 @@ uses
 
 {$R *.dfm}
 
+procedure  TSubinstructivosProdAprobarFrm.UnLockScreen;
+begin
+  lblCodigo.Enabled:= True;
+  edtCodigo.Enabled:= True;
+  lblDescripcion.Enabled:= True;
+  edtDescripcion.Enabled:= True;
+  lblUbicacion.Enabled:= True;
+  edtUbicacion.Enabled:= True;
+  btnDir.Enabled:= True;
+  btnBuscar.Visible:= True;
+  btnConfirmar.Visible:= True;
+  btnLimpiar.Visible:= True;
+end;
+
+procedure  TSubinstructivosProdAprobarFrm.LockScreen;
+begin
+  lblCodigo.Enabled:= False;
+  edtCodigo.Enabled:= False;
+  edtCodigo.Text:= '';
+  lblDescripcion.Enabled:= False;
+  edtDescripcion.Enabled:= False;
+  edtDescripcion.Text:= '';
+  lblUbicacion.Enabled:= False;
+  edtUbicacion.Enabled:= False;
+  edtUbicacion.Text:= '';
+  btnDir.Enabled:= False;
+  btnBuscar.Visible:= False;
+  btnConfirmar.Visible:= False;
+  btnLimpiar.Visible:= False;
+  btnVolver.SetFocus;
+end;
+
 procedure TSubinstructivosProdAprobarFrm.btnVolverClick(Sender: TObject);
 begin
-  self.Close;
+  MainForm.Enabled:= True;
+  MainForm.Show;
+  Hide;
+  MainForm:= nil;
 end;
 
 procedure TSubinstructivosProdAprobarFrm.btnLimpiarClick(Sender: TObject);
@@ -267,6 +303,12 @@ procedure TSubinstructivosProdAprobarFrm.edtCodigoKeyPress(Sender: TObject;
 begin
    if Ord(Key) = 13 then
     btnBuscar.Click;
+end;
+
+procedure TSubinstructivosProdAprobarFrm.FormClose(Sender: TObject;
+  var Action: TCloseAction);
+begin
+  self.btnVolver.Click;
 end;
 
 end.

@@ -787,6 +787,7 @@ procedure TPrincipalFrm.Alta5Click(Sender: TObject);
 begin
   SubinstructivosProdAltaFrm.Show;
 end;
+
 procedure TPrincipalFrm.Baja5Click(Sender: TObject);
 begin
   SubinstructivosProdBajaFrm.Show;
@@ -800,7 +801,9 @@ end;
 
 procedure TPrincipalFrm.Aprobar2Click(Sender: TObject);
 begin
+  Enabled:= False;
   SubinstructivosProdAprobarFrm.Operacion:= TAprobar.Create;
+  SubinstructivosProdAprobarFrm.MainForm:= Self;
   SubinstructivosProdAprobarFrm.Show;
 end;
 
@@ -812,7 +815,9 @@ end;
 
 procedure TPrincipalFrm.Recibir2Click(Sender: TObject);
 begin
+  Enabled:= False;
   SubinstructivosProdAprobarFrm.Operacion:= TRecibir.Create;
+  SubinstructivosProdAprobarFrm.MainForm:= Self;
   SubinstructivosProdAprobarFrm.Show;
 end;
 

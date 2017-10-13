@@ -220,6 +220,14 @@ type
     btnTodosip: TButton;
     btnLimpiarip: TButton;
     btnVolverip: TButton;
+    GroupBox6: TGroupBox;
+    Image13: TImage;
+    Image14: TImage;
+    Image15: TImage;
+    Label25: TLabel;
+    Label26: TLabel;
+    Label27: TLabel;
+    Label28: TLabel;
     procedure btnVolverEnter(Sender: TObject);
     procedure btnVolverClick(Sender: TObject);
     procedure btnVolverlmEnter(Sender: TObject);
@@ -394,6 +402,7 @@ type
       Item: TListItem; State: TCustomDrawState; var DefaultDraw: Boolean);
     procedure btnVolveripClick(Sender: TObject);
     procedure btnAbriripClick(Sender: TObject);
+    procedure edtCodigoipKeyPress(Sender: TObject; var Key: Char);
 
   private
     FSQL: string;
@@ -2897,6 +2906,15 @@ begin
   else
     Application.MessageBox('El registro del plano seleccionado no tiene ingresada la ubicación del mismo', 'SGPB', MB_ICONINFORMATION,);
 
+end;
+
+procedure TConsultasFrm.edtCodigoipKeyPress(Sender: TObject;
+  var Key: Char);
+begin
+  if (key=#13) then
+  begin
+    btnBuscaripClick(Sender);
+  end;
 end;
 
 end.

@@ -1935,6 +1935,7 @@ object SubinstructivosProdAprobarFrm: TSubinstructivosProdAprobarFrm
     9C4100009C4100009C4100009C4100009C4100009C41}
   OldCreateOrder = False
   Position = poScreenCenter
+  OnClose = FormClose
   OnShow = FormShow
   PixelsPerInch = 96
   TextHeight = 13
@@ -1985,6 +1986,7 @@ object SubinstructivosProdAprobarFrm: TSubinstructivosProdAprobarFrm
     CharCase = ecUpperCase
     TabOrder = 0
     OnEnter = edtCodigoEnter
+    OnKeyPress = edtCodigoKeyPress
   end
   object btnBuscar: TButton
     Left = 160

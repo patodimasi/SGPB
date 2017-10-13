@@ -795,13 +795,18 @@ end;
 
 procedure TPrincipalFrm.Modificar1Click(Sender: TObject);
 begin
+  Enabled:= False;
   SubinstructivosProdAprobarFrm.Operacion:= TModificacion.Create;
+  SubinstructivosProdAprobarFrm.MainForm:= self;
   SubinstructivosProdAprobarFrm.Show;
+  
 end;
 
 procedure TPrincipalFrm.Aprobar2Click(Sender: TObject);
 begin
+  Enabled:= False;
   SubinstructivosProdAprobarFrm.Operacion:= TAprobar.Create;
+  SubinstructivosProdAprobarFrm.MainForm:= Self;
   SubinstructivosProdAprobarFrm.Show;
 end;
 
@@ -813,7 +818,9 @@ end;
 
 procedure TPrincipalFrm.Recibir2Click(Sender: TObject);
 begin
+  Enabled:= False;
   SubinstructivosProdAprobarFrm.Operacion:= TRecibir.Create;
+  SubinstructivosProdAprobarFrm.MainForm:= Self;
   SubinstructivosProdAprobarFrm.Show;
 end;
 
