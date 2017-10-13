@@ -88,8 +88,6 @@ type
     ToolButton17: TToolButton;
     ToolButton20: TToolButton;
     ToolButton3: TToolButton;
-    ToolButton7: TToolButton;
-    ToolButton13: TToolButton;
     PopupMenuABMManuales: TPopupMenu;
     Alta3: TMenuItem;
     Baja3: TMenuItem;
@@ -673,7 +671,6 @@ end;
 
 procedure TPrincipalFrm.SuperarManual1Click(Sender: TObject);
 begin
-//  self.Enabled:= False;
   ManualSuperarFrm.MainForm:= self;
   ManualSuperarFrm.Show;
 end;

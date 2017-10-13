@@ -48,6 +48,10 @@ const
   SCR_MANUALES_SUPERAR= 'MANUALES_SUPERAR';
   SCR_INSTRUCTIVOSPROD_ALTA= 'INSTRUCTIVOSPROD_ALTA';
   SCR_INSTRUCTIVOSPROD_MODIF= 'INSTRUCTIVOSPROD_MODIF';
+  SCR_INSTRUCTIVOSPROD_RECIBIR= 'INSTRUCTIVOSPROD_RECIBIR';
+  SCR_INSTRUCTIVOSPROD_SUPERAR= 'INSTRUCTIVOSPROD_SUPERAR';
+  
+
 type
   TAccion = string[1];
 
@@ -59,6 +63,7 @@ type
     FManualDB: TManualDB;
     FListaDB: TListaDB;
     FSubinstructivoDB: TSubinstructivoDB;
+    FInstructivoDB: TInstructivoDB;
     FIniFile: TIniFile;
     FIniFilename: string;
     constructor Create;
@@ -68,6 +73,7 @@ type
     property ManualDB: TManualDB read FManualDB;
     property ListaDB: TListaDB read FListaDB;
     property SubinstructivoDB: TSubinstructivoDB read FSubinstructivoDB;
+    property InstructivoDB: TInstructivoDB read FInstructivoDB;
     property UsuarioDB: TUsuarioDB read FUsuarioDB;
     class function GetInstance: TSistema;
     function GetDataBaseFilename: string;

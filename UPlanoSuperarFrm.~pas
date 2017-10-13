@@ -323,7 +323,7 @@ begin
     CodRet:= TSistema.GetInstance.PlanoDB.Superar(FPlano, PlanoNuevo);
     if CodRet = PLN_SUPERAR_OK then
     begin
-      ShowMessage('El plano ' + FPlano.Codigo + ' se dió superó satisfactoriamente');
+      ShowMessage('El plano ' + FPlano.Codigo + ' se superó satisfactoriamente');
       PlanoNuevo.Free;
 
       if MessageDlg('¿ Desea superar otro plano ?', mtConfirmation, mbOKCancel, 0) = mrOK then

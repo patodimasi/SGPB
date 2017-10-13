@@ -2082,7 +2082,6 @@ object SuperarInstructivosProdFrm: TSuperarInstructivosProdFrm
     Height = 21
     Caption = '&Buscar'
     TabOrder = 1
-    OnClick = btnBuscarClick
   end
   object edtNroRev: TEdit
     Left = 104
@@ -2196,7 +2195,6 @@ object SuperarInstructivosProdFrm: TSuperarInstructivosProdFrm
     Height = 25
     Caption = '&Confirmar'
     TabOrder = 10
-    OnClick = btnConfirmarClick
   end
   object btnLimpiar: TButton
     Left = 336

@@ -1,6 +1,6 @@
 object LogonFrm: TLogonFrm
-  Left = 420
-  Top = 242
+  Left = 817
+  Top = 320
   BorderIcons = [biSystemMenu, biMinimize]
   BorderStyle = bsSingle
   ClientHeight = 257

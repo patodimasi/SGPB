@@ -2104,22 +2104,6 @@ object PrincipalFrm: TPrincipalFrm
       ShowHint = True
       OnClick = ToolButton11Click
     end
-    object ToolButton7: TToolButton
-      Left = 280
-      Top = 2
-      Width = 8
-      Caption = 'ToolButton7'
-      ImageIndex = 35
-      Style = tbsSeparator
-    end
-    object ToolButton13: TToolButton
-      Left = 288
-      Top = 2
-      Width = 8
-      Caption = 'ToolButton13'
-      ImageIndex = 33
-      Style = tbsSeparator
-    end
   end
   object mmMenuPrincipal: TMainMenu
     Images = ImageList1
@@ -2202,7 +2186,6 @@ object PrincipalFrm: TPrincipalFrm
           end
           object Baja4: TMenuItem
             Caption = 'Baja'
-            Enabled = False
             ImageIndex = 45
             OnClick = Baja4Click
           end
