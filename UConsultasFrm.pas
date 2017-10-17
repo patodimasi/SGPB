@@ -1494,11 +1494,11 @@ begin
            ', PLN_DESCRIPCION, PLN_USUARIO_ALTA, PLN_USUARIO_APR, PLN_FECHA_APR ' +
            ', PLN_USUARIO_REC, PLN_FECHA_REC, PLN_UBICACION, PLN_ESTADO, PLN_SUPERADO ';
 
-    if rbUltRev.Checked then
+    if rbUltRevmp.Checked then
       FSQL:= FSQL + ' from MANUALESPRODUCTO ' + SQLWhere + ' order by 2,1'
-    else if rbHist.Checked then
+    else if rbHismp.Checked then
       FSQL:= FSQL + ' from HISTORICOMANUALES ' + SQLWhere + ' order by 2,3,1'
-    else if rbTodos.Checked then
+    else if rbTodosmp.Checked then
       FSQL:= 'select PLN_CODIGO, PLN_NRO_REV, PLN_FECHA ' +
              ', PLN_DESCRIPCION, PLN_USUARIO_ALTA, PLN_USUARIO_APR, PLN_FECHA_APR ' +
              ', PLN_USUARIO_REC, PLN_FECHA_REC, PLN_UBICACION, PLN_ESTADO, PLN_SUPERADO ' +
@@ -2805,11 +2805,11 @@ begin
            ', PLN_DESCRIPCION, PLN_USUARIO_ALTA, PLN_USUARIO_APR, PLN_FECHA_APR ' +
            ', PLN_USUARIO_REC, PLN_FECHA_REC, PLN_UBICACION, PLN_ESTADO, PLN_SUPERADO';
 
-    if rbUltRevsp.Checked then
+    if rbUltRevip.Checked then
       FSQL:= FSQL + ' from INSTRUCTIVOSPRODUCCION ' + SQLWhere + ' order by 2,1'
-    else if rbHistsp.Checked then
+    else if rbHistip.Checked then
       FSQL:= FSQL + ' from INSTRUCTIVOSPRODUCCIONHISTORICO ' + SQLWhere + ' order by 2,3,1'
-    else if rbTodossp.Checked then
+    else if rbTodosip.Checked then
       FSQL:= 'select PLN_CODIGO,PLN_NRO_REV, PLN_FECHA, PLN_NRO_EDIC ' +
              ', PLN_DESCRIPCION, PLN_USUARIO_ALTA, PLN_USUARIO_APR, PLN_FECHA_APR ' +
              ', PLN_USUARIO_REC, PLN_FECHA_REC, PLN_UBICACION,PLN_ESTADO,PLN_SUPERADO ' +

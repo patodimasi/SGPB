@@ -3519,7 +3519,7 @@ object ConsultasFrm: TConsultasFrm
         end
         object Label26: TLabel
           Left = 30
-          Top = 45
+          Top = 44
           Width = 100
           Height = 13
           Caption = 'Manuales Superados'
