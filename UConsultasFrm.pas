@@ -403,6 +403,11 @@ type
     procedure btnVolveripClick(Sender: TObject);
     procedure btnAbriripClick(Sender: TObject);
     procedure edtCodigoipKeyPress(Sender: TObject; var Key: Char);
+    procedure ListViewmpDblClick(Sender: TObject);
+    procedure ListViewspDblClick(Sender: TObject);
+    procedure ListViewipDblClick(Sender: TObject);
+    procedure btnAbrirlmClick(Sender: TObject);
+    procedure ListViewlmDblClick(Sender: TObject);
 
   private
     FSQL: string;
@@ -948,8 +953,6 @@ begin
   btnBuscar.Enabled:= True;
   btnTodos.Enabled:= True;
 
-//  PageControl1.Pages[0].SetFocus;
-//  edtCodigo.SetFocus;
 end;
 
 procedure TConsultasFrm.btnLimpiarlmClick(Sender: TObject);
@@ -1003,6 +1006,7 @@ begin
     stbPlano.SimpleText:= 'Se encontraron ' + IntToStr(ListViewip.Items.Count) + ' Instructivos de Producción que coinciden con el criterio de búsqueda ingresado';
     ListViewip.Enabled:= True;
     ListViewip.ItemIndex:= 0;
+    self.btnAbririp.Enabled:= true;
     ListViewip.SetFocus;
   end
   else
@@ -1024,6 +1028,7 @@ begin
     stbPlano.SimpleText:= 'Se encontraron ' + IntToStr(ListViewsp.Items.Count) + ' Subinstructivos de Producción que coinciden con el criterio de búsqueda ingresado';
     ListViewsp.Enabled:= True;
     ListViewsp.ItemIndex:= 0;
+    self.btnAbrirsp.Enabled:= true;
     ListViewsp.SetFocus;
 
   end
@@ -1046,6 +1051,7 @@ begin
   begin
     stbPlano.SimpleText:= 'Se encontraron ' + IntToStr(ListViewlm.Items.Count) + ' Listas de Materiales que coinciden con el criterio de búsqueda ingresado';
     ListViewlm.Enabled:= True;
+    self.btnAbrirlm.Enabled:= true;
     ListViewlm.ItemIndex:= 0;
     ListViewlm.SetFocus;
 
@@ -1070,6 +1076,7 @@ begin
     ListViewmp.Enabled:= True;
     ListViewmp.ItemIndex:= 0;
     ListViewmp.SetFocus;
+    self.btnAbrirmp.Enabled:= true;
   end
   else
   begin
@@ -1533,6 +1540,10 @@ end;
 procedure TConsultasFrm.FormShow(Sender: TObject);
 begin
   btnLimpiar.Click;
+  self.btnLimpiarmp.Click;
+  self.btnLimpiarsp.Click;
+  self.btnLimpiarip.Click;
+  self.btnLimpiarlm.Click;
 end;
 
 procedure TConsultasFrm.btnAbrirClick(Sender: TObject);
@@ -1781,6 +1792,7 @@ procedure TConsultasFrm.edtAprobacionEnter(Sender: TObject);
 begin
   stbPlano.SimpleText:= 'Ingrese el usuario de aprobación de los planos que desea consultar';
 end;
+
 procedure TConsultasFrm.edtAprobacionlmEnter(Sender: TObject);
 begin
   stbPlano.SimpleText:= 'Ingrese el usuario de aprobación de las Listas de Materiales que desea consultar';
@@ -2376,23 +2388,23 @@ end;
 
 procedure TConsultasFrm.btnLimpiarspClick(Sender: TObject);
 begin
-  self.edtCodigosp.Text:= '';
-  self.edtCodigoDesdesp.Text:= '';
-  self.edtCodigoHastasp.Text:= '';
-  self.edtNroRevsp.Text:= '';
-  self.edtNroRevDesdesp.Text:= '';
-  self.edtNroRevHastasp.Text:= '';
-  self.edtDescripcionsp.Text:= '';
-  self.edtAltasp.Text:= '';
-  self.edtAprobacionsp.Text:= '';
-  self.edtRecepcionsp.Text:= '';
+  edtCodigosp.Text:= '';
+  edtCodigoDesdesp.Text:= '';
+  edtCodigoHastasp.Text:= '';
+  edtNroRevsp.Text:= '';
+  edtNroRevDesdesp.Text:= '';
+  edtNroRevHastasp.Text:= '';
+  edtDescripcionsp.Text:= '';
+  edtAltasp.Text:= '';
+  edtAprobacionsp.Text:= '';
+  edtRecepcionsp.Text:= '';
 
-  self.rbUltRevsp.Checked:= True;
-  self.ListViewsp.Clear;
-  self.ListViewsp.Enabled:= False;
-  self.btnAbrirsp.Enabled:= True;
-  self.btnBuscarsp.Enabled:= True;
-  self.btnTodossp.Enabled:= True;
+  rbUltRevsp.Checked:= True;
+  ListViewsp.Clear;
+  ListViewsp.Enabled:= False;
+  btnAbrirsp.Enabled:= False;
+  btnBuscarsp.Enabled:= True;
+  btnTodossp.Enabled:= True;
 
 end;
 
@@ -2540,17 +2552,17 @@ end;
 
 procedure TConsultasFrm.btnTodosspClick(Sender: TObject);
 begin
-  if rbUltRev.Checked then
+  if rbUltRevsp.Checked then
     FSQL:= 'select PLN_FECHA, PLN_CODIGO, PLN_NRO_REV, PLN_NRO_EDIC ' +
            ', PLN_DESCRIPCION, PLN_USUARIO_ALTA, PLN_USUARIO_APR, PLN_FECHA_APR ' +
            ', PLN_USUARIO_REC, PLN_FECHA_REC, PLN_UBICACION,PLN_ESTADO,PLN_SUPERADO ' +
            ' from SUBINSTRUCTIVOSPRODUCCION order by 2,3,1'
-  else if rbHist.Checked then
+  else if rbHistsp.Checked then
     FSQL:= 'select PLN_FECHA, PLN_CODIGO, PLN_NRO_REV, PLN_NRO_EDIC ' +
            ', PLN_DESCRIPCION, PLN_USUARIO_ALTA, PLN_USUARIO_APR, PLN_FECHA_APR ' +
            ', PLN_USUARIO_REC, PLN_FECHA_REC, PLN_UBICACION,PLN_ESTADO,PLN_SUPERADO ' +
            ' from SUBINSTRUCTIVOSPRODUCCIONHISTORICO order by 2,3,1'
-  else if rbTodos.Checked then
+  else if rbTodossp.Checked then
     FSQL:= 'select PLN_CODIGO, PLN_NRO_REV, PLN_FECHA, PLN_NRO_EDIC ' +
            ', PLN_DESCRIPCION, PLN_USUARIO_ALTA, PLN_USUARIO_APR, PLN_FECHA_APR ' +
            ', PLN_USUARIO_REC, PLN_FECHA_REC, PLN_UBICACION,PLN_ESTADO, PLN_SUPERADO ' +
@@ -2899,12 +2911,12 @@ begin
  if ListViewip.Selected.SubItems[8] <> '' then
   begin
     if ShellExecute( Self.Handle, 'explore'
-                   , PChar(ListView.Selected.SubItems[8])
+                   , PChar(ListViewip.Selected.SubItems[8])
                    , nil, nil, SW_SHOWMAXIMIZED) <= 32 then
-      Application.MessageBox('La ubicación del plano no existe', 'SGPB', MB_ICONEXCLAMATION);
+      Application.MessageBox('La ubicación del Instructivo de Producción no existe', 'SGPB', MB_ICONEXCLAMATION);
   end
   else
-    Application.MessageBox('El registro del plano seleccionado no tiene ingresada la ubicación del mismo', 'SGPB', MB_ICONINFORMATION,);
+    Application.MessageBox('El registro del Instructivo de Producción seleccionado no tiene ingresada la ubicación del mismo', 'SGPB', MB_ICONINFORMATION,);
 
 end;
 
@@ -2915,6 +2927,39 @@ begin
   begin
     btnBuscaripClick(Sender);
   end;
+end;
+
+procedure TConsultasFrm.ListViewmpDblClick(Sender: TObject);
+begin
+  self.btnAbrirmp.Click;
+end;
+
+procedure TConsultasFrm.ListViewspDblClick(Sender: TObject);
+begin
+  self.btnAbrirsp.Click;
+end;
+
+procedure TConsultasFrm.ListViewipDblClick(Sender: TObject);
+begin
+  self.btnAbririp.Click;
+end;
+
+procedure TConsultasFrm.btnAbrirlmClick(Sender: TObject);
+begin
+  if ListViewlm.Selected.SubItems[8] <> '' then
+  begin
+    if ShellExecute( Self.Handle, 'explore'
+                   , PChar(ListViewlm.Selected.SubItems[8])
+                   , nil, nil, SW_SHOWMAXIMIZED) <= 32 then
+      Application.MessageBox('La ubicación de la Lista de Materiales no existe', 'SGPB', MB_ICONEXCLAMATION);
+  end
+  else
+    Application.MessageBox('El registro de la Lista de Materiales seleccionado no tiene ingresada la ubicación del mismo', 'SGPB', MB_ICONINFORMATION,);
+end;
+
+procedure TConsultasFrm.ListViewlmDblClick(Sender: TObject);
+begin
+  self.btnAbrirlm.Click;
 end;
 
 end.
