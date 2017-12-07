@@ -1973,7 +1973,7 @@ object ConsultasFrm: TConsultasFrm
     Top = 0
     Width = 723
     Height = 514
-    ActivePage = TabSheet2
+    ActivePage = TabSheet4
     Align = alClient
     TabOrder = 1
     object TabSheet1: TTabSheet
@@ -2782,6 +2782,7 @@ object ConsultasFrm: TConsultasFrm
         Height = 21
         TabOrder = 12
         OnEnter = edtDescripcionlmEnter
+        OnKeyPress = edtDescripcionlmKeyPress
       end
       object TreeView1: TTreeView
         Left = 16
@@ -4236,6 +4237,7 @@ object ConsultasFrm: TConsultasFrm
         Width = 361
         Height = 21
         TabOrder = 3
+        OnKeyPress = edtDescripcionipKeyPress
       end
       object edtAltaip: TEdit
         Left = 96

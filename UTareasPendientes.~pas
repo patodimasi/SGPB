@@ -669,7 +669,6 @@ begin
       Item := ListViewL.GetNextItem(Item, sdAll, [isSelected]);
     end;
 
-
     if MessageDlg('¿ Esta seguro que desea recibir las Listas de Materiales seleccionadas ?', mtConfirmation, mbOKCancel, 0) = mrOK then
     begin
       CodRet:= FListaDB.CumplirTareasSel(PLN_PEND_REC, sCodigos);

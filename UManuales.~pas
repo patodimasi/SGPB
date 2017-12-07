@@ -29,11 +29,13 @@ type
    FFechaAprobacionM: string;
    FUsuarioRecepcionM: string;
    FUbicacionM: string;
+   FSuperadoM: string;
    FUsuarioCreacionM: string;
    FFechaCreacionM: string;
    FUsuarioModifM: string;
    FFechaModifM: string;
    FFechaRecepcionM: string;
+
  public
    constructor create;
    property CodigoM: string read FCodigoM write FCodigoM;
@@ -60,7 +62,7 @@ Constructor TManuales.create;
 begin
   self.FCodigoM:= '';
   self.FDescripcionM:= '';
-  FEstado:= PLN_EST_CREADO;
+  FEstadoM:= PLN_EST_CREADO;
 end;
 function TManuales.Copiar(M: TManuales): Boolean;
 begin

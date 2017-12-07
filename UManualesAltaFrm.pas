@@ -174,13 +174,14 @@ begin
       UsuarioRecepcionm:= '';
       FechaRecepcionm:= '';
       Ubicacionm:= edtUbicacionm.Text;
+      Superadom:= 'NS';
       UsuarioCreacionm:= TSistema.GetInstance.GetUsuario.Logon;
       FechaCreacionm:= DateToStr(Date);
       UsuarioModifm:= '';
       FechaModifm:= '';
 
     end;
-    CodRet:= TSistema.GetInstance.ManualDB.Alta(Manual,TAB_MANUAL);
+    CodRet:= TSistema.GetInstance.ManualDB.Alta(Manual,TAB_MANUAL,'NS');
     if CodRet = PLN_ALTA_OK then
     begin
       ShowMessage('El Manual ' + Manual.CodigoM + ' se dió de alta satisfactoriamente');

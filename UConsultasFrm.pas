@@ -408,6 +408,9 @@ type
     procedure ListViewipDblClick(Sender: TObject);
     procedure btnAbrirlmClick(Sender: TObject);
     procedure ListViewlmDblClick(Sender: TObject);
+    procedure edtDescripcionlmKeyPress(Sender: TObject; var Key: Char);
+    procedure edtDescripcionipKeyPress(Sender: TObject; var Key: Char);
+    
 
   private
     FSQL: string;
@@ -2267,8 +2270,8 @@ procedure TConsultasFrm.edtCodigoKeyPress(Sender: TObject; var Key: Char);
 begin
   if (key=#13) then
     begin
-        btnBuscarClick(Sender);
-
+         btnBuscarClick(self);
+         key := #0;
     end;
 end;
 
@@ -2277,7 +2280,8 @@ procedure TConsultasFrm.edtCodigolmKeyPress(Sender: TObject;
 begin
    if (key=#13) then
     begin
-        btnBuscarlmClick(Sender);
+        btnBuscarlmClick(self);
+        key := #0;
     end;
 end;
 
@@ -2285,9 +2289,11 @@ procedure TConsultasFrm.edtCodigompKeyPress(Sender: TObject;
   var Key: Char);
 begin
   if (key=#13) then
-    begin
-        btnBuscarmpClick(Sender);
-    end;
+  begin
+    btnBuscarmpClick(self);
+    Key := #0;
+  end;
+
 end;
 
 procedure TConsultasFrm.edtDescripcionKeyPress(Sender: TObject;
@@ -2295,8 +2301,10 @@ procedure TConsultasFrm.edtDescripcionKeyPress(Sender: TObject;
 begin
    if (key=#13) then
     begin
-        btnBuscarClick(Sender);
+      btnBuscarClick(self);
+      key := #0;
     end;
+
 end;
 
 procedure TConsultasFrm.edtAltaKeyPress(Sender: TObject; var Key: Char);
@@ -2348,7 +2356,8 @@ procedure TConsultasFrm.edtDescripcionmpKeyPress(Sender: TObject;
 begin
   if (key=#13) then
     begin
-        btnBuscarmpClick(Sender);
+        btnBuscarmpClick(Self);
+        key := #0;
     end;
 end;
 
@@ -2594,7 +2603,8 @@ procedure TConsultasFrm.edtCodigospKeyPress(Sender: TObject;
 begin
    if (key=#13) then
     begin
-        btnBuscarspClick(Sender);
+        btnBuscarspClick(Self);
+        key := #0;
     end;
 end;
 
@@ -2603,7 +2613,8 @@ procedure TConsultasFrm.edtDescripcionspKeyPress(Sender: TObject;
 begin
   if (key=#13) then
     begin
-        btnBuscarspClick(Sender);
+        btnBuscarspClick(self);
+        key := #0;
     end;
 end;
 
@@ -2925,7 +2936,8 @@ procedure TConsultasFrm.edtCodigoipKeyPress(Sender: TObject;
 begin
   if (key=#13) then
   begin
-    btnBuscaripClick(Sender);
+    btnBuscaripClick(self);
+    key := #0;
   end;
 end;
 
@@ -2960,6 +2972,26 @@ end;
 procedure TConsultasFrm.ListViewlmDblClick(Sender: TObject);
 begin
   self.btnAbrirlm.Click;
+end;
+
+procedure TConsultasFrm.edtDescripcionlmKeyPress(Sender: TObject;
+  var Key: Char);
+begin
+    if key = #13 then
+  begin
+    btnBuscarlmClick(Self);
+    key := #0;
+  end;
+end;
+
+procedure TConsultasFrm.edtDescripcionipKeyPress(Sender: TObject;
+  var Key: Char);
+begin
+  if key = #13 then
+  begin
+    btnBuscaripClick(Self);
+    key := #0;
+  end;
 end;
 
 end.

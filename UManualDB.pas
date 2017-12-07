@@ -31,7 +31,7 @@ uses
   type
   TManualDB = class(TObjectDB)
   public
-    function Alta(M: TManuales; Tabla: string): Integer;
+    function Alta(M: TManuales; Tabla: string;superado: string): Integer;
     function Baja(M: TManuales; Tabla: string): Integer;
     function Modificacion(M: TManuales): Integer;
     function Aprobar(M: TManuales): Integer;
@@ -112,7 +112,7 @@ begin
   end;
 end;
 
-function TManualDB.Alta(M: TManuales; Tabla: string): Integer;
+function TManualDB.Alta(M: TManuales; Tabla: string; superado: string): Integer;
 var
   sSQL: string;
   MSQL: TMotorSQL;
@@ -138,17 +138,18 @@ begin
                   ', PLN_USUARIO_REC ' +
                   ', PLN_FECHA_REC ' +
                   ', PLN_UBICACION ' +
+                  ', PLN_SUPERADO ' +
                   ', USUARIO_CREACION ' +
                   ', FECHA_CREACION ' +
                   ', USUARIO_MODIF ' +
                   ', FECHA_MODIF )' +
-                  ' VALUES (%s, %s, %d, %d, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)'
+                  ' VALUES (%s, %s, %d, %d, %s, %s, %s, %s, %s, %s, %s, %s,%s, %s, %s, %s, %s)'
                     , [Formatear(M.CodigoM), Formatear(M.DescripcionM), M.RevisionM,
                        M.EdicionM,Formatear(M.EstadoM), Formatear(M.FechaM),
                        Formatear(M.UsuarioAltaM),
                        Formatear(M.UsuarioAprobacionM), Formatear(M.FechaAprobacionM),
                        Formatear(M.UsuarioRecepcionM), Formatear(M.FechaRecepcionM),
-                       Formatear(M.UbicacionM),
+                       Formatear(M.UbicacionM), QuotedStr(superado),
                        Formatear(M.UsuarioCreacionM), Formatear(M.FechaCreacionM),
                        Formatear(M.UsuarioModifM), Formatear(M.FechaModifM)]);
     try
@@ -172,9 +173,9 @@ var
   CodRet: Integer;
 begin
   CodRet:= PLN_SUPERAR_FAILED;
-  if Alta(MH, TAB_HISTORICO_MANUAL) = PLN_ALTA_OK then
+  if Alta(MH, TAB_HISTORICO_MANUAL,'S') = PLN_ALTA_OK then
     if Baja(MH, TAB_MANUAL) = PLN_BAJA_OK then
-      if Alta(MN, TAB_MANUAL) = PLN_ALTA_OK then
+      if Alta(MN, TAB_MANUAL,'NS') = PLN_ALTA_OK then
         CodRet:= PLN_SUPERAR_OK;
 
   Result:= CodRet;

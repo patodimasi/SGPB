@@ -31,7 +31,7 @@ uses
   type
   TManualDB = class(TObjectDB)
   public
-    function Alta(M: TManuales; Tabla: string): Integer;
+    function Alta(M: TManuales; Tabla: string;superado: string): Integer;
     function Baja(M: TManuales; Tabla: string): Integer;
     function Modificacion(M: TManuales): Integer;
     function Aprobar(M: TManuales): Integer;
@@ -39,6 +39,7 @@ uses
     function GetManual(M: TManuales;E: TEstadoManual): Boolean;
     function GenerarManual(M: TManuales): Boolean;
     function Superar(MH: TManuales; MN: TManuales): Integer;
+    function Consulta(ListView: TListView; SQL: string): Boolean;
     {function AltaMasiva(P: TPlano; TablaIns: string; TablaSel: string): Integer;
     function Baja(P: TPlano; Tabla: string): Integer;
     function BajaMasiva(Tabla: string): Integer;
@@ -58,7 +59,60 @@ implementation
 uses
   SysUtils, ADODB, USistema, Classes, StrUtils;
 
-function TManualDB.Alta(M: TManuales; Tabla: string): Integer;
+function TManualDB.Consulta(ListView: TListView; SQL: string): Boolean;
+var
+  MSQL: TMotorSQL;
+  Dst: TADODataset;
+  ItemPln: TListItem;
+
+begin
+  Result:= False;
+
+  // Establezco una conexion con la BD
+  MSQL:= TMotorSQL.GetInstance();
+  MSQL.OpenConn;
+
+  // Si se pudo realizar...
+  if MSQL.GetStatus = 0 then
+  begin
+
+    Dst:= TADODataset.Create(nil);
+    try
+      // Obtengo la conexion a la BD
+      Dst.Connection:= MSQL.GetConn;
+      Dst.CommandText:= SQL;
+      Dst.Open;
+      if not Dst.Eof then
+      begin
+        while not Dst.Eof do
+        begin
+          ItemPln:= ListView.Items.Add;
+          ItemPln.Caption:= Dst.FieldByName('PLN_FECHA').AsString;
+          ItemPln.SubItems.Add(Dst.FieldByName('PLN_CODIGO').AsString);
+          ItemPln.SubItems.Add(IntToStr(Dst.FieldByName('PLN_NRO_REV').AsInteger));
+          ItemPln.SubItems.Add(Dst.FieldByName('PLN_DESCRIPCION').AsString);
+          ItemPln.SubItems.Add(Dst.FieldByName('PLN_USUARIO_ALTA').AsString);
+          ItemPln.SubItems.Add(Dst.FieldByName('PLN_USUARIO_APR').AsString);
+          ItemPln.SubItems.Add(Dst.FieldByName('PLN_FECHA_APR').AsString);
+          ItemPln.SubItems.Add(Dst.FieldByName('PLN_USUARIO_REC').AsString);
+          ItemPln.SubItems.Add(Dst.FieldByName('PLN_FECHA_REC').AsString);
+          ItemPln.SubItems.Add(Dst.FieldByName('PLN_UBICACION').AsString);
+          ItemPln.SubItems.Add(Dst.FieldByName('PLN_ESTADO').AsString);
+          ItemPln.SubItems.Add(Dst.FieldByName('PLN_SUPERADO').AsString);
+
+          Dst.Next;
+        end;
+        Result:= True;
+      end;
+      Dst.Close;
+      MSQL.CloseConn;
+    finally
+      Dst.Free;
+    end;
+  end;
+end;
+
+function TManualDB.Alta(M: TManuales; Tabla: string; superado: string): Integer;
 var
   sSQL: string;
   MSQL: TMotorSQL;
@@ -84,17 +138,18 @@ begin
                   ', PLN_USUARIO_REC ' +
                   ', PLN_FECHA_REC ' +
                   ', PLN_UBICACION ' +
+                  ', PLN_SUPERADO ' +
                   ', USUARIO_CREACION ' +
                   ', FECHA_CREACION ' +
                   ', USUARIO_MODIF ' +
                   ', FECHA_MODIF )' +
-                  ' VALUES (%s, %s, %d, %d, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)'
+                  ' VALUES (%s, %s, %d, %d, %s, %s, %s, %s, %s, %s, %s, %s,%s, %s, %s, %s, %s)'
                     , [Formatear(M.CodigoM), Formatear(M.DescripcionM), M.RevisionM,
                        M.EdicionM,Formatear(M.EstadoM), Formatear(M.FechaM),
                        Formatear(M.UsuarioAltaM),
                        Formatear(M.UsuarioAprobacionM), Formatear(M.FechaAprobacionM),
                        Formatear(M.UsuarioRecepcionM), Formatear(M.FechaRecepcionM),
-                       Formatear(M.UbicacionM),
+                       Formatear(M.UbicacionM), QuotedStr(M.SuperadoM),
                        Formatear(M.UsuarioCreacionM), Formatear(M.FechaCreacionM),
                        Formatear(M.UsuarioModifM), Formatear(M.FechaModifM)]);
     try
@@ -118,9 +173,9 @@ var
   CodRet: Integer;
 begin
   CodRet:= PLN_SUPERAR_FAILED;
-  if Alta(MH, TAB_HISTORICO_MANUAL) = PLN_ALTA_OK then
+  if Alta(MH, TAB_HISTORICO_MANUAL,'S') = PLN_ALTA_OK then
     if Baja(MH, TAB_MANUAL) = PLN_BAJA_OK then
-      if Alta(MN, TAB_MANUAL) = PLN_ALTA_OK then
+      if Alta(MN, TAB_MANUAL,'NS') = PLN_ALTA_OK then
         CodRet:= PLN_SUPERAR_OK;
 
   Result:= CodRet;

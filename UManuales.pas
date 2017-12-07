@@ -29,11 +29,13 @@ type
    FFechaAprobacionM: string;
    FUsuarioRecepcionM: string;
    FUbicacionM: string;
+   FSuperadoM: string;
    FUsuarioCreacionM: string;
    FFechaCreacionM: string;
    FUsuarioModifM: string;
    FFechaModifM: string;
    FFechaRecepcionM: string;
+
  public
    constructor create;
    property CodigoM: string read FCodigoM write FCodigoM;
@@ -47,6 +49,7 @@ type
    property FechaAprobacionM: string read FFechaAprobacionM write FFechaAprobacionM;
    property UsuarioRecepcionM: string read FUsuarioRecepcionM write FUsuarioRecepcionM;
    property UbicacionM: string read FUbicacionM write FUbicacionM;
+   property SuperadoM: string read FSuperadoM write FSuperadoM;
    property UsuarioCreacionM: string read FUsuarioCreacionM write FUsuarioCreacionM;
    property FechaCreacionM: string read FFechaCreacionM write FFechaCreacionM;
    property UsuarioModifM: string read FUsuarioCreacionM write FUsuarioCreacionM;
@@ -78,6 +81,7 @@ begin
     self.FFechaAprobacionM:= M.FechaAprobacionM;
     self.FUsuarioRecepcionM:= M.FUsuarioRecepcionM;
     self.FUbicacionM:= M.FUbicacionM;
+    self.FSuperadoM:= M.SuperadoM;
     self.FUsuarioCreacionM:= M.UsuarioCreacionM;
     self.FFechaCreacionM:= M.FechaCreacionM;
     self.FUsuarioModifM:= M.UsuarioModifM;

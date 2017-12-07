@@ -1956,7 +1956,7 @@ object TareasPendientesFrm: TTareasPendientesFrm
     Top = 0
     Width = 631
     Height = 414
-    ActivePage = TabSheet2
+    ActivePage = TabSheet1
     Align = alClient
     TabOrder = 1
     OnEnter = PageControl1Enter
